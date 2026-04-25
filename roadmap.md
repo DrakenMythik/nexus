@@ -5,7 +5,10 @@ The "Why": To enable a high-performance, mobile-first training experience that t
 ### Task 1.1: Google OAuth Integration
 - Description: Implement Google OAuth 2.0 flow to secure access to the user's Google Drive and Sheets.
 - DoD: User can successfully sign in/out; user session persists across browser refreshes; token is stored securely for API calls.
-### Task 1.2: Sheet Schema Validator
+### Task 1.2: Sheet Selector
+- Description: Allow the user to select a Logs and Programs file from their Google Drive.
+- DoD: User can successfully navigate their Google Drive to select files. File paths are stored in memory.
+### Task 1.3: Sheet Schema Validator
 - Description: Create a utility that checks the required headers in the "Metrics," "Programs," and "Logs" sheets upon application load.
 - DoD: App displays a "Config Error" UI screen if headers are missing, explicitly naming the missing columns; app proceeds to Home if validation passes.
 
