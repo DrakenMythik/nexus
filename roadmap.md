@@ -14,7 +14,7 @@ The "Why": To enable a high-performance, mobile-first training experience that t
 
 ## FEATURE 2: The "Daily Vitals" Workflow
 ### Task 2.1: Vitals Input Form
-- Description: Create a responsive form for Sleep (hrs), Weight (kg/lbs), and Macros (Protein/Calories).
+- Description: Create a responsive form for Sleep (hrs), Weight (kg/lbs), Steps, Workout (Y/N), Workout Intesity and Macros (Protein/Calories).
 - DoD: Form fields include basic validation (e.g., positive numbers); UI matches the "Daily Vitals" wireframe.
 ### Task 2.2: Optimistic Sync with Status Indicator
 - Description: Implement an "Optimistic UI" pattern for POST requests to the Metrics sheet. Include an icon that shifts from "Syncing..." to "Synced" (or "Failed").
