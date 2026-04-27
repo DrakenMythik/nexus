@@ -1,0 +1,10 @@
+---
+description: Security constraints, anti-hallucination, and execution boundaries for Cursor agents
+globs: *
+alwaysApply: true
+---
+# Agent Execution Boundaries
+- **Zero Placeholder Policy**: Never leave incomplete code or `// TODO` stubs. Deliver fully functional units of work.
+- **Anti-Hallucination**: Verify the existence of npm packages via the terminal before suggesting imports.
+- **Interface-First Development**: Define TypeScript interfaces and types before writing implementation code.
+- **Security First**: Do not hardcode API keys. API keys must remain in `.env` (which is gitignored) and be accessed via `import.meta.env` in Vite.

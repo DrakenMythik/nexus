@@ -1,0 +1,16 @@
+---
+description: Global tech stack and coding conventions for the Nexus PWA
+globs: *.{ts,tsx,js,jsx}
+alwaysApply: true
+---
+# Nexus Tech Stack
+- Core: React 19, TypeScript, Vite.
+- Offline/PWA Orchestration: vite-plugin-pwa utilizing the InjectManifest strategy.
+- Authentication: Google Identity Services (GIS) with Authorization Code Flow + PKCE.
+- Data Layer: Native Google Sheets API (v4) & Google Drive API (v3).
+- State Management: Zustand (offline cache) and React Query.
+
+# Conventions
+- Use strict TypeScript.
+- Favor functional components and hooks.
+- Apply the "Concise Architect" rule: Do not explain every single import; be concise.
