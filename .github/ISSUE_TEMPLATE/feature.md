@@ -1,21 +1,23 @@
 ---
 name: Feature Request (Cursor AI)
-about: Create a new feature or task optimized for Cursor AI
+about: Create a new task optimized for Cursor AI
 title: 'feat: '
 labels: enhancement
 assignees: ''
 ---
 
-## Context
-## Requirements
-- [ ] 
+## 🗺️ Project Context
+- **Phase:**
+- **Epic:**
+## 🎯 Task Context
+- 
+## 📋 Requirements
 - [ ] 
 - [ ] 
 
-## Technical Guidance (For Cursor)
+## 🛠️ Technical Guidance (For Cursor)
 - **Relevant Files:** `src/`
-- **Dependencies:** - **Rules:** Follow the Feature-Sliced Design (FSD) architecture conventions. 
+- **Dependencies:** - **Rules:** Follow the Feature-Sliced Design (FSD) architecture boundaries. 
 
-## Definition of Done
-- [ ] 
+## ✅ Definition of Done
 - [ ]
