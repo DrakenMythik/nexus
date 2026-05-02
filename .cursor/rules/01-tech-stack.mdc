@@ -6,8 +6,8 @@ alwaysApply: true
 # Nexus Tech Stack
 - Core: React 19, TypeScript, Vite.
 - Offline/PWA Orchestration: vite-plugin-pwa utilizing the InjectManifest strategy.
-- Authentication: Google Identity Services (GIS) with Authorization Code Flow + PKCE.
-- Data Layer: Native Google Sheets API (v4) & Google Drive API (v3).
+- Authentication: Supabase Auth (Email/Password or OAuth).
+- Data Layer: Supabase PostgreSQL (via `@supabase/supabase-js`).
 - State Management: Zustand (offline cache) and React Query.
 
 # Conventions
