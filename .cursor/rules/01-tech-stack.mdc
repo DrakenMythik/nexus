@@ -5,6 +5,7 @@ alwaysApply: true
 ---
 # Nexus Tech Stack
 - Core: React 19, TypeScript, Vite.
+- Styling: Tailwind CSS.
 - Offline/PWA Orchestration: vite-plugin-pwa utilizing the InjectManifest strategy.
 - Authentication: Supabase Auth (Email/Password or OAuth).
 - Data Layer: Supabase PostgreSQL (via `@supabase/supabase-js`).
