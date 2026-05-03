@@ -7,10 +7,10 @@ alwaysApply: false
 Follow the "Unidirectional Dependency" rule: a module can only import from modules on layers below it, never from those on the same or higher layers.
 
 ## Layers (Top to Bottom):
-1. `app/`: Global offline error boundaries, GIS Auth Provider initialization.
+1. `app/`: Global offline error boundaries, Supabase Provider initialization.
 2. `pages/`: DashboardPage, WorkoutGuidedPage, OnboardingPage.
 3. `widgets/`: FocusCardWidget, DailyVitalsForm.
-4. `features/`: auth-by-google, select-drive-sheet, sync-vitals, push-workout-log.
+4. `features/`: auth-by-google, auth-by-microsoft, auth-by-apple, auth-by-email, sync-vitals, push-workout-log.
 5. `entities/`: ProgramModel, MetricsModel, UserModel.
 6. `shared/`: API proxies, UI kits, lib.
 
