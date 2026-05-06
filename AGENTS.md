@@ -17,9 +17,7 @@ These files are the source of truth. If anything in this document conflicts with
 
 ## Repository State
 
-This repository is in an **early scaffolding phase**. At time of writing, only documentation, Cursor rules, and notes exist. There is no `src/`, `supabase/`, `docs/`, `package.json`, or build tooling on disk yet.
-
-The structure described in [`README.md`](README.md) is the **intended target**, not the current state. Do not assume planned directories exist.
+The project has been scaffolded with a working Vite + React 19 + TypeScript setup. The `src/` directory follows Feature-Sliced Design, and `package.json` with all dev dependencies is in place.
 
 ## Agent Workflow
 
@@ -61,3 +59,25 @@ When implementation work begins, follow the planned stack:
 - Run the **narrowest relevant check** for the change you made (type-check the touched package, run the affected test file, lint the edited files).
 - If validation cannot be run because the project is not scaffolded yet (no `package.json`, no scripts), say so explicitly in your response instead of inventing or skipping commands.
 - After substantive edits, check for linter errors on files you modified and fix any you introduced.
+
+## Cursor Cloud specific instructions
+
+### Available scripts (via `pnpm`)
+
+| Command | Purpose |
+|---------|---------|
+| `pnpm dev` | Vite dev server at `localhost:5173` with HMR |
+| `pnpm build` | TypeScript check + production Vite build |
+| `pnpm lint` | ESLint across `**/*.{ts,tsx}` |
+| `pnpm typecheck` | TypeScript project references type-check (no emit) |
+| `pnpm test` | Vitest single run (jsdom environment) |
+| `pnpm test:watch` | Vitest in watch mode |
+| `pnpm preview` | Serve the production build locally |
+
+### Gotchas
+
+- **esbuild build scripts**: pnpm requires explicit approval for native addon build scripts. The `pnpm.onlyBuiltDependencies` field in `package.json` allows esbuild. If new native packages are added, they must be added there too.
+- **TypeScript 6**: `baseUrl` is deprecated. Use relative `paths` entries like `"@/*": ["./src/*"]` without a `baseUrl` field.
+- **Tailwind v4**: Uses the `@import "tailwindcss"` directive in CSS (no `@tailwind` directives). Configuration is via the `@tailwindcss/vite` plugin, not a `tailwind.config.js` file.
+- **PWA service worker**: The InjectManifest strategy builds `src/sw.ts` into `dist/sw.js`. Dev mode enables a dev SW via `devOptions.enabled: true` in vite-plugin-pwa config.
+- **Supabase not required for local dev**: The app runs without Supabase credentials. Features that need auth/data will gracefully degrade. Supply `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env` only when testing auth/data flows.
