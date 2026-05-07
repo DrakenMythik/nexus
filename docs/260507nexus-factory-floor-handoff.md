@@ -18,12 +18,13 @@ To prevent Agent hallucination and ensure strict FSD compliance, work is divided
 ## 3. The Kanban Conveyor Belt (Agent Handoff Rules)
 A single Feature Issue moves across the board by swapping labels:
 
-1.  **Todo:** Issue created. Human fills out the `feature.md` template.
+1.  **Backlog:** Issue created. Human fills out the `feature.md` template.
 2.  **Architecting:** Human applies `agent:architect`. Agent reads template, plans DB schema/FSD layers, writes markdown specs, creates a PR. Human reviews and merges. Label swapped.
 3.  **Coding:** Human applies `agent:coder`. Agent reads the Architect's specs, builds the React components, creates a PR. Human reviews and merges. Label swapped.
 4.  **Testing:** Human applies `agent:tester`. Agent writes Cypress E2E tests for the new UI. Creates PR.
-5.  **Reviewing:** Human applies `human:review`. Final visual and code check.
-6.  **Done:** Feature is live on `main`.
+5.  **Reviewing:** Human applies `agent:review`. Agent reviews the code for any outstanding issues.
+6.  **Reviewing:** Human applies `human:review`. Final visual and code check.
+7.  **Done:** Feature is live on `main`.
 
 ## 4. Product Roadmap (High-Level Backlog)
 
