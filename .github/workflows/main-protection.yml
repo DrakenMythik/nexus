@@ -1,0 +1,29 @@
+name: "GNAP Pipeline: Verification"
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  verify-agent-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Linter
+        run: npm run lint
+        
+      - name: Build the app
+        run: npm run build
+        
+      - name: Run Cypress Tests
+        run: npm run test:e2e:ci
