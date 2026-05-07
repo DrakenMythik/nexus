@@ -61,3 +61,15 @@ When implementation work begins, follow the planned stack:
 - Run the **narrowest relevant check** for the change you made (type-check the touched package, run the affected test file, lint the edited files).
 - If validation cannot be run because the project is not scaffolded yet (no `package.json`, no scripts), say so explicitly in your response instead of inventing or skipping commands.
 - After substantive edits, check for linter errors on files you modified and fix any you introduced.
+
+## Boundaries
+### Always Do
+- Follow the unidirectional dependency rules outlined in `.cursor/rules/02-fsd.mdc`.
+- Update the `🤖 Agentic Pipeline` checklist in the GitHub issue when completing a phase.
+
+### Ask First
+- Ask first before creating, modifying, or executing any files within the `supabase/migrations/` directory or running any `supabase db` CLI commands.
+
+### Never Do
+- Never execute `git push origin main`, `git commit`, or merge branches autonomously. 
+- Never expose PII or database credentials.
