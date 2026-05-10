@@ -55,6 +55,7 @@ When implementation work begins, follow the planned stack:
 - **Secrets never in code.** API keys, Supabase URLs, and tokens live in `.env` (gitignored) and are read via `import.meta.env.*` in Vite.
 - **Verify packages exist** before suggesting an import. If a dependency is not in `package.json` (once it exists), confirm it on the registry first.
 - **Do not commit** files that may contain secrets (`.env`, `.env.local`, credentials, key files).
+- **Supabase `public` tables:** do not leave new tables exposed to the **`anon`** role by default. After `CREATE TABLE`, RLS, and grants to `authenticated` (or other intended roles), explicitly **`REVOKE`** privileges from **`anon`** (at minimum `SELECT`) unless anonymous access is explicitly required.
 
 ## Validation
 

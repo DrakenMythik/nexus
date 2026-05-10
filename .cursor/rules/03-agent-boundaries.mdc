@@ -8,5 +8,6 @@ alwaysApply: true
 - **Anti-Hallucination**: Verify the existence of npm packages via the terminal before suggesting imports.
 - **Interface-First Development**: Define TypeScript interfaces and types before writing implementation code.
 - **Security First**: Do not hardcode API keys. API keys must remain in `.env` (which is gitignored) and be accessed via `import.meta.env` in Vite.
+- **Supabase anon default-deny**: New `public` tables must not retain default **`anon`** privileges; **`REVOKE`** from **`anon`** (at least `SELECT`) after grants unless anonymous access is explicitly requested.
 - **Inspect Before Acting**: Do not assume scripts (`npm run build`, `npm test`, etc.) or planned directories (`src/`, `supabase/`, `docs/`) exist. Verify the repo state before invoking them or referencing them in code.
 - **Git Safety**: Never run destructive or irreversible git operations (force push, hard reset, history rewrites) and never commit unless the user explicitly requests it.
