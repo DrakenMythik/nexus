@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 import { AppleSignInButton } from '@/features/auth-by-apple';
 import { EmailAuthForm } from '@/features/auth-by-email';
 import { GoogleSignInButton } from '@/features/auth-by-google';
@@ -39,12 +41,12 @@ export function RegisterPage() {
 
       <p className="text-center text-sm text-slate-400">
         Already have an account?{' '}
-        <a
-          href="/login"
+        <Link
+          to="/login"
           className="font-medium text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
         >
           Sign in
-        </a>
+        </Link>
       </p>
     </div>
   );
