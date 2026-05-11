@@ -145,7 +145,7 @@ Groups login UI; imports only from features/* and shared/ui
 4.7 Environment
 Path
 Responsibility
-[.env.example](.env.example)
+[.env.local](.env.local)
 VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, optional redirect URL notes
 5. Automated tests (RLS + auth DoD)
 Not application code in this blueprint, but locations and intent:
