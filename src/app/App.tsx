@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import {
   AuthCallbackPage,
+  CompleteProfilePage,
   DashboardPage,
   LoginPage,
   PendingVerificationPage,
@@ -9,6 +10,7 @@ import {
 } from '@/pages';
 
 import { AuthSessionGate } from './AuthSessionGate';
+import { RequireProfileDisplayName } from './RequireProfileDisplayName';
 
 export function App() {
   return (
@@ -24,7 +26,13 @@ export function App() {
             />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route element={<AuthSessionGate />}>
-              <Route path="/" element={<DashboardPage />} />
+              <Route
+                path="/complete-profile"
+                element={<CompleteProfilePage />}
+              />
+              <Route element={<RequireProfileDisplayName />}>
+                <Route path="/" element={<DashboardPage />} />
+              </Route>
             </Route>
           </Routes>
         </div>

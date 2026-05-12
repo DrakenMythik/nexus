@@ -13,7 +13,9 @@ DoD: tests prove cross-user access denied
 Test layout under cypress/ or e2e/ calling Supabase with two sessions (see §5)
 FSD constraint: Features on the same layer must not import each other. The login/register page orchestrates multiple features via composition only (imports each feature’s public API from its index.ts).
 
-**Email confirmation UX:** When email/password sign-up succeeds **without** a Supabase session (email confirmations enabled), the client routes to **`/register/pending-verification`**, stores the address in **`sessionStorage`** under **`nexus_auth_pending_verification_email`** (same key as **`PENDING_VERIFICATION_EMAIL_STORAGE_KEY`**) so a refresh still shows the correct inbox, and exposes **Resend confirmation** via **`auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${origin}/auth/callback` } })`**. When confirmations are off, **`signUp` returns a session** and the client navigates to **`/`** instead.
+**Email confirmation UX:** When email/password sign-up succeeds **without** a Supabase session (email confirmations enabled), the client routes to **`/register/pending-verification`**, stores the address in **`sessionStorage`** under **`nexus_auth_pending_verification_email`** (same key as **`PENDING_VERIFICATION_EMAIL_STORAGE_KEY`**) so a refresh still shows the correct inbox, and exposes **Resend confirmation** via **`auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${origin}/auth/callback` } })`**. When confirmations are off, **`signUp` returns a session** and **`EmailAuthForm`** navigates to **`/complete-profile`** so the user can set **`display_name`** before the dashboard.
+
+**Profile display name gate:** **[`src/app/RequireProfileDisplayName.tsx`](src/app/RequireProfileDisplayName.tsx)** wraps authenticated routes that require a non-empty **`profiles.display_name`**. It waits for **`authHydrated`** from **`useUserStore`**, then **`useProfileQuery`** (**`isPending`**); if the profile has no trimmed **`display_name`**, it redirects to **`/complete-profile`**. **[`src/pages/complete-profile-page/CompleteProfilePage.tsx`](src/pages/complete-profile-page/CompleteProfilePage.tsx)** saves **`display_name`** via **`upsertProfile`**, updates the user store, invalidates the profile query, and navigates to **`/`**. **[`src/pages/dashboard-page/DashboardPage.tsx`](src/pages/dashboard-page/DashboardPage.tsx)** greets with **`Hello, {display_name}`** from **`useUserStore`** (mirrored from React Query via **`ProfileHydration`**).
 
 2. Supabase SQL schema (exact objects to create)
 Place in [supabase/migrations/](supabase/migrations/) as one or more migrations (exact filename TBD when implementing). Below is the logical schema to implement.
@@ -42,7 +44,7 @@ alter table public.profiles enable row level security;
 Policies (authenticated role): SELECT/INSERT/UPDATE/DELETE where auth.uid() = id (insert/update with check same predicate).
 2.3 Trigger: new auth user → profile row
 Function e.g. public.handle_new_user() security definer, set search_path = public
-Trigger on auth.users after insert—insert matching public.profiles row
+Trigger on auth.users after insert—insert matching public.profiles row (**`id` only**; **`display_name`** is **`null`** until the client calls **`upsertProfile`**). A follow-up migration must replace any broken **`INSERT`** that lists one column but supplies two values.
 Keeps registration consistent for all providers
 2.4 Representative health / workout tables (RLS proof + MVP foundation)
 Minimum viable tables so Task 1.2 and automated tests are meaningful (adjust names to match your domain vocabulary in docs/ later).
@@ -86,10 +88,14 @@ Root follows README.md: [src/](src/) with FSD layers. Barrel file index.ts per s
 4.1 src/app/ — global wiring
 Path
 Responsibility
-[src/app/providers/SupabaseProvider.tsx](src/app/providers/SupabaseProvider.tsx) (or alongside existing [src/app/App.tsx](src/app/App.tsx))
-React context providing Supabase client + session subscription
-[src/app/providers/AuthSessionGate.tsx](src/app/providers/AuthSessionGate.tsx) (optional)
+[src/app/App.tsx](src/app/App.tsx)
+Routes: public auth pages; **`AuthSessionGate`** wraps **`/complete-profile`**, **`RequireProfileDisplayName`** + **`/`** (dashboard).
+[src/app/AuthSessionGate.tsx](src/app/AuthSessionGate.tsx)
 Redirect unauthenticated users away from protected routes
+[src/app/RequireProfileDisplayName.tsx](src/app/RequireProfileDisplayName.tsx)
+Requires **`authHydrated`** and loaded profile with non-empty **`display_name`** for nested routes (e.g. dashboard).
+[src/app/providers/SupabaseProvider.tsx](src/app/providers/SupabaseProvider.tsx) (or alongside existing App wiring)
+React context providing Supabase client + session subscription
 [src/main.tsx](src/main.tsx)
 Already exists—wrap with providers
 Rule: Initialize one browser Supabase client here or inject from below; avoid duplicate clients.
@@ -135,11 +141,15 @@ Responsibility
 [src/pages/login-page/LoginPage.tsx](src/pages/login-page/LoginPage.tsx)
 Compose email form + OAuth buttons from features
 [src/pages/register-page/RegisterPage.tsx](src/pages/register-page/RegisterPage.tsx)
-Registration variant; successful email sign-up without session navigates to pending verification (handled inside **EmailAuthForm**).
+Registration variant; successful email sign-up without session navigates to pending verification (handled inside **EmailAuthForm**); with session, navigates to **`/complete-profile`**.
+[src/pages/complete-profile-page/CompleteProfilePage.tsx](src/pages/complete-profile-page/CompleteProfilePage.tsx)
+Protected **`/complete-profile`**: collect **`display_name`**, **`upsertProfile`**, then **`/`**.
+[src/pages/dashboard-page/DashboardPage.tsx](src/pages/dashboard-page/DashboardPage.tsx)
+Protected home; shows **Hello, {display_name}** from **`useUserStore.profile`**.
 [src/pages/pending-verification-page/PendingVerificationPage.tsx](src/pages/pending-verification-page/PendingVerificationPage.tsx)
 Public route **`/register/pending-verification`**: copy for confirm-email, resend signup, links to login/register (clears pending email storage).
 [src/pages/auth-callback-page/AuthCallbackPage.tsx](src/pages/auth-callback-page/AuthCallbackPage.tsx)
-OAuth redirect handling if needed
+OAuth / email-link callback; navigates to **`/`**; **`RequireProfileDisplayName`** sends users without **`display_name`** to **`/complete-profile`**.
 Pages may import widgets for layout but must not duplicate provider-specific API calls.
 
 4.6 src/widgets/ (optional for this epic)

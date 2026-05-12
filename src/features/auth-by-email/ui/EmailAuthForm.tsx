@@ -42,7 +42,7 @@ export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
       if (variant === 'register') {
         const trimmedEmail = email.trim();
         if (result.session) {
-          void navigate('/', { replace: true });
+          void navigate('/complete-profile', { replace: true });
           return;
         }
         persistPendingVerificationEmail(trimmedEmail);
