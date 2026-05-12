@@ -8,15 +8,19 @@ export interface UserStoreState {
   userId: UserId | null;
   /** Denormalized snapshot for offline-friendly reads; server truth via React Query. */
   profile: Profile | null;
+  /** True after the first Supabase session resolution (getSession or auth listener). */
+  authHydrated: boolean;
   setSession: (session: Session | null) => void;
   clearUser: () => void;
   setProfile: (profile: Profile | null) => void;
+  markAuthReady: () => void;
 }
 
 export const useUserStore = create<UserStoreState>((set) => ({
   session: null,
   userId: null,
   profile: null,
+  authHydrated: false,
   setSession: (session) =>
     set({
       session,
@@ -30,4 +34,6 @@ export const useUserStore = create<UserStoreState>((set) => ({
       profile: null,
     }),
   setProfile: (profile) => set({ profile }),
+  markAuthReady: () =>
+    set((state) => (state.authHydrated ? state : { ...state, authHydrated: true })),
 }));

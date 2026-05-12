@@ -12,19 +12,26 @@ export function AuthStateBridge() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    let initialAuthResolved = false;
+    const markInitialAuthResolved = () => {
+      if (initialAuthResolved) return;
+      initialAuthResolved = true;
+      useUserStore.getState().markAuthReady();
+    };
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         useUserStore.getState().clearUser();
         queryClient.removeQueries({ queryKey: profileQueryKeys.all });
-        return;
+      } else {
+        useUserStore.getState().setSession(session);
+        void queryClient.invalidateQueries({
+          queryKey: profileQueryKeys.byUserId(session.user.id),
+        });
       }
-
-      useUserStore.getState().setSession(session);
-      void queryClient.invalidateQueries({
-        queryKey: profileQueryKeys.byUserId(session.user.id),
-      });
+      markInitialAuthResolved();
     });
 
     void supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,6 +40,7 @@ export function AuthStateBridge() {
       } else {
         useUserStore.getState().setSession(session);
       }
+      markInitialAuthResolved();
     });
 
     return () => {

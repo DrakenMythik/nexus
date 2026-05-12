@@ -1,6 +1,13 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import { AuthCallbackPage, LoginPage, RegisterPage } from '@/pages';
+import {
+  AuthCallbackPage,
+  DashboardPage,
+  LoginPage,
+  RegisterPage,
+} from '@/pages';
+
+import { AuthSessionGate } from './AuthSessionGate';
 
 export function App() {
   return (
@@ -11,10 +18,9 @@ export function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
-            <Route
-              path="/"
-              element={<div>Nexus Dashboard (Protected)</div>}
-            />
+            <Route element={<AuthSessionGate />}>
+              <Route path="/" element={<DashboardPage />} />
+            </Route>
           </Routes>
         </div>
       </main>

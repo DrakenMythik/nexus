@@ -33,7 +33,8 @@ describe('useUserStore', () => {
     useUserStore.setState({
       session: null,
       userId: null,
-      profile: null
+      profile: null,
+      authHydrated: false
     });
   });
 
@@ -71,6 +72,16 @@ describe('useUserStore', () => {
     expect(state.profile).toBeNull();
   });
 
+  it('markAuthReady sets authHydrated and is idempotent', () => {
+    expect(useUserStore.getState().authHydrated).toBe(false);
+
+    useUserStore.getState().markAuthReady();
+    expect(useUserStore.getState().authHydrated).toBe(true);
+
+    useUserStore.getState().markAuthReady();
+    expect(useUserStore.getState().authHydrated).toBe(true);
+  });
+
   it('clearUser resets session, userId, and profile', () => {
     useUserStore.getState().setSession(mockSession(testUserId));
     useUserStore.getState().setProfile({
@@ -86,5 +97,14 @@ describe('useUserStore', () => {
     expect(state.session).toBeNull();
     expect(state.userId).toBeNull();
     expect(state.profile).toBeNull();
+  });
+
+  it('clearUser does not reset authHydrated', () => {
+    useUserStore.getState().markAuthReady();
+    useUserStore.getState().setSession(mockSession(testUserId));
+
+    useUserStore.getState().clearUser();
+
+    expect(useUserStore.getState().authHydrated).toBe(true);
   });
 });
