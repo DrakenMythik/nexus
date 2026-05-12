@@ -12,6 +12,9 @@ Auth flows in features + entities/user; deletion documented (client sign-out + u
 DoD: tests prove cross-user access denied
 Test layout under cypress/ or e2e/ calling Supabase with two sessions (see §5)
 FSD constraint: Features on the same layer must not import each other. The login/register page orchestrates multiple features via composition only (imports each feature’s public API from its index.ts).
+
+**Email confirmation UX:** When email/password sign-up succeeds **without** a Supabase session (email confirmations enabled), the client routes to **`/register/pending-verification`**, stores the address in **`sessionStorage`** under **`nexus_auth_pending_verification_email`** (same key as **`PENDING_VERIFICATION_EMAIL_STORAGE_KEY`**) so a refresh still shows the correct inbox, and exposes **Resend confirmation** via **`auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${origin}/auth/callback` } })`**. When confirmations are off, **`signUp` returns a session** and the client navigates to **`/`** instead.
+
 2. Supabase SQL schema (exact objects to create)
 Place in [supabase/migrations/](supabase/migrations/) as one or more migrations (exact filename TBD when implementing). Below is the logical schema to implement.
 
@@ -117,7 +120,7 @@ Barrel exports
 Slice
 Suggested files
 [src/features/auth-by-email/](src/features/auth-by-email/)
-model/types.ts, api/sign-in.ts, api/sign-up.ts, api/sign-out.ts, api/delete-account.ts (thin wrappers calling Supabase Auth), ui/EmailAuthForm.tsx, index.ts
+model/types.ts, model/pending-verification-email.ts, api/sign-in.ts, api/sign-up.ts, api/resend-signup-email.ts, api/sign-out.ts, api/delete-account.ts, ui/EmailAuthForm.tsx, index.ts
 [src/features/auth-by-google/](src/features/auth-by-google/)
 api/sign-in.ts (signInWithOAuth provider google), ui/GoogleSignInButton.tsx, index.ts
 [src/features/auth-by-microsoft/](src/features/auth-by-microsoft/)
@@ -132,7 +135,9 @@ Responsibility
 [src/pages/login-page/LoginPage.tsx](src/pages/login-page/LoginPage.tsx)
 Compose email form + OAuth buttons from features
 [src/pages/register-page/RegisterPage.tsx](src/pages/register-page/RegisterPage.tsx)
-Registration variant
+Registration variant; successful email sign-up without session navigates to pending verification (handled inside **EmailAuthForm**).
+[src/pages/pending-verification-page/PendingVerificationPage.tsx](src/pages/pending-verification-page/PendingVerificationPage.tsx)
+Public route **`/register/pending-verification`**: copy for confirm-email, resend signup, links to login/register (clears pending email storage).
 [src/pages/auth-callback-page/AuthCallbackPage.tsx](src/pages/auth-callback-page/AuthCallbackPage.tsx)
 OAuth redirect handling if needed
 Pages may import widgets for layout but must not duplicate provider-specific API calls.

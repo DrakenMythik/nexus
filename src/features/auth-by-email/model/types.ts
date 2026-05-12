@@ -1,3 +1,5 @@
+import type { Session } from '@supabase/supabase-js';
+
 export interface EmailPasswordCredentials {
   email: string;
   password: string;
@@ -16,6 +18,8 @@ export interface AuthEmailFailure {
 
 export interface AuthEmailSuccess {
   ok: true;
+  /** Set by `signUpWithEmail`: null when email confirmation is required before a session exists. */
+  session?: Session | null;
 }
 
 export type AuthEmailResult = AuthEmailSuccess | AuthEmailFailure;

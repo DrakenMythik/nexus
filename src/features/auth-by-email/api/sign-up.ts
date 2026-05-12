@@ -7,7 +7,7 @@ export async function signUpWithEmail(
   credentials: EmailPasswordCredentials,
 ): Promise<AuthEmailResult> {
   const { email, password } = credentials;
-  const { error } = await client.auth.signUp({ email, password });
+  const { data, error } = await client.auth.signUp({ email, password });
 
   if (error) {
     if (
@@ -24,5 +24,5 @@ export async function signUpWithEmail(
     return { ok: false, code: 'unknown', message: error.message };
   }
 
-  return { ok: true };
+  return { ok: true, session: data.session ?? null };
 }

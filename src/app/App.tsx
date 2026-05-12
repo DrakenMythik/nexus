@@ -4,6 +4,7 @@ import {
   AuthCallbackPage,
   DashboardPage,
   LoginPage,
+  PendingVerificationPage,
   RegisterPage,
 } from '@/pages';
 
@@ -17,6 +18,10 @@ export function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/register/pending-verification"
+              element={<PendingVerificationPage />}
+            />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route element={<AuthSessionGate />}>
               <Route path="/" element={<DashboardPage />} />

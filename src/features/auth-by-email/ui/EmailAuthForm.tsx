@@ -1,9 +1,11 @@
 import { type FormEvent, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { useSupabase } from '@/shared/api';
 
 import { signInWithEmail } from '../api/sign-in';
 import { signUpWithEmail } from '../api/sign-up';
+import { persistPendingVerificationEmail } from '../model/pending-verification-email';
 
 export interface EmailAuthFormProps {
   variant: 'login' | 'register';
@@ -12,6 +14,7 @@ export interface EmailAuthFormProps {
 
 export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
   const client = useSupabase();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -36,12 +39,23 @@ export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
         return;
       }
 
+      if (variant === 'register') {
+        const trimmedEmail = email.trim();
+        if (result.session) {
+          void navigate('/', { replace: true });
+          return;
+        }
+        persistPendingVerificationEmail(trimmedEmail);
+        void navigate('/register/pending-verification', {
+          replace: true,
+          state: { email: trimmedEmail },
+        });
+        return;
+      }
+
       setFeedback({
         kind: 'success',
-        text:
-          variant === 'register'
-            ? 'Check your email to confirm your account if confirmation is enabled for this project.'
-            : "You're signed in.",
+        text: "You're signed in.",
       });
     } finally {
       setSubmitting(false);
