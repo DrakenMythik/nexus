@@ -1,4 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useMemo, useState, type ReactNode } from 'react';
 
 import {
@@ -7,7 +11,7 @@ import {
 } from '@/shared/api';
 
 import { AuthStateBridge } from './AuthStateBridge';
-import { ProfileHydration } from './ProfileHydration';
+import { buildPersistQueryOptions, getQueryPersister } from './query-persist';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -23,14 +27,32 @@ export function AppProviders({ children }: { children: ReactNode }) {
   );
 
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const persister = useMemo(() => getQueryPersister(), []);
+
+  const persistOptions = useMemo(
+    () => (persister ? buildPersistQueryOptions() : null),
+    [persister],
+  );
+
+  const inner = (
+    <SupabaseClientProvider client={supabase}>
+      <AuthStateBridge />
+      {children}
+    </SupabaseClientProvider>
+  );
+
+  if (persister && persistOptions) {
+    return (
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={persistOptions}
+      >
+        {inner}
+      </PersistQueryClientProvider>
+    );
+  }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SupabaseClientProvider client={supabase}>
-        <AuthStateBridge />
-        <ProfileHydration />
-        {children}
-      </SupabaseClientProvider>
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{inner}</QueryClientProvider>
   );
 }

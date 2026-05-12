@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { profileQueryKeys, useUserStore } from '@/entities/user';
 import { useSupabase } from '@/shared/api';
 
+import { clearPersistedQueryClient } from './query-persist';
+
 /**
  * Keeps Zustand session state and React Query profile cache aligned with Supabase Auth.
  */
@@ -25,6 +27,7 @@ export function AuthStateBridge() {
       if (!session) {
         useUserStore.getState().clearUser();
         queryClient.removeQueries({ queryKey: profileQueryKeys.all });
+        clearPersistedQueryClient();
       } else {
         useUserStore.getState().setSession(session);
         void queryClient.invalidateQueries({
@@ -37,6 +40,8 @@ export function AuthStateBridge() {
     void supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         useUserStore.getState().clearUser();
+        queryClient.removeQueries({ queryKey: profileQueryKeys.all });
+        clearPersistedQueryClient();
       } else {
         useUserStore.getState().setSession(session);
       }

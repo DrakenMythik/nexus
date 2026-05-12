@@ -23,8 +23,8 @@ function mockSession(userId: string): Session {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       identities: [],
-      factors: null
-    }
+      factors: null,
+    },
   } as unknown as Session;
 }
 
@@ -33,35 +33,20 @@ describe('useUserStore', () => {
     useUserStore.setState({
       session: null,
       userId: null,
-      profile: null,
-      authHydrated: false
+      authHydrated: false,
     });
   });
 
-  it('setSession maps user id and preserves profile when session is set', () => {
-    useUserStore.getState().setProfile({
-      id: asUserId(testUserId),
-      display_name: 'Test',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    });
-
+  it('setSession maps user id when session is set', () => {
     const session = mockSession(testUserId);
     useUserStore.getState().setSession(session);
 
     const state = useUserStore.getState();
     expect(state.session).toBe(session);
     expect(state.userId).toBe(asUserId(testUserId));
-    expect(state.profile).not.toBeNull();
   });
 
-  it('setSession(null) clears profile', () => {
-    useUserStore.getState().setProfile({
-      id: asUserId(testUserId),
-      display_name: 'Test',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    });
+  it('setSession(null) clears session and userId', () => {
     useUserStore.getState().setSession(mockSession(testUserId));
 
     useUserStore.getState().setSession(null);
@@ -69,7 +54,6 @@ describe('useUserStore', () => {
     const state = useUserStore.getState();
     expect(state.session).toBeNull();
     expect(state.userId).toBeNull();
-    expect(state.profile).toBeNull();
   });
 
   it('markAuthReady sets authHydrated and is idempotent', () => {
@@ -82,21 +66,14 @@ describe('useUserStore', () => {
     expect(useUserStore.getState().authHydrated).toBe(true);
   });
 
-  it('clearUser resets session, userId, and profile', () => {
+  it('clearUser resets session and userId', () => {
     useUserStore.getState().setSession(mockSession(testUserId));
-    useUserStore.getState().setProfile({
-      id: asUserId(testUserId),
-      display_name: 'Test',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    });
 
     useUserStore.getState().clearUser();
 
     const state = useUserStore.getState();
     expect(state.session).toBeNull();
     expect(state.userId).toBeNull();
-    expect(state.profile).toBeNull();
   });
 
   it('clearUser does not reset authHydrated', () => {

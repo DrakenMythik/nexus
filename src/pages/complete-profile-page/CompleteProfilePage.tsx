@@ -15,7 +15,6 @@ export function CompleteProfilePage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const userId = useUserStore((s) => s.userId);
-  const setProfile = useUserStore((s) => s.setProfile);
   const { data: profile, isPending } = useProfileQuery();
 
   const [displayName, setDisplayName] = useState('');
@@ -46,11 +45,8 @@ export function CompleteProfilePage() {
     setSubmitting(true);
     try {
       const updated = await upsertProfile(client, { display_name: trimmed });
-      setProfile(updated);
       if (userId) {
-        await queryClient.invalidateQueries({
-          queryKey: profileQueryKeys.byUserId(userId),
-        });
+        queryClient.setQueryData(profileQueryKeys.byUserId(userId), updated);
       }
       void navigate('/', { replace: true });
     } catch (err) {
