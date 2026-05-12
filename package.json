@@ -45,5 +45,14 @@
     "workbox-precaching": "^7.4.1",
     "workbox-routing": "^7.4.1",
     "workbox-strategies": "^7.4.1"
+  },
+  "overrides": {
+    "workbox-build": {
+      "glob": "^13.0.6",
+      "source-map": "^0.7.6"
+    },
+    "@cypress/request": {
+      "uuid": "^11.0.0"
+    }
   }
 }
