@@ -17,6 +17,7 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'node_modules/**',
+      'cypress/**',
       '**/*.config.{js,ts,cjs,mjs}',
       'vite.config.ts'
     ]
@@ -48,16 +49,17 @@ export default tseslint.config(
         { type: 'app', pattern: 'app/**' },
         { type: 'app', pattern: 'styles/**' },
         { type: 'app', pattern: 'sw.ts' },
-        { type: 'pages', pattern: 'pages/*' },
-        { type: 'widgets', pattern: 'widgets/*' },
-        { type: 'features', pattern: 'features/*' },
-        { type: 'entities', pattern: 'entities/*' },
-        { type: 'shared', pattern: 'shared/*' }
+        { type: 'pages', pattern: 'pages/**/*' },
+        { type: 'widgets', pattern: 'widgets/**/*' },
+        { type: 'features', pattern: 'features/**/*' },
+        { type: 'entities', pattern: 'entities/**/*' },
+        { type: 'shared', pattern: 'shared/**/*' }
       ]
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'boundaries/no-unknown': 'error',
+      // npm packages are not "elements"; rely on `boundaries/dependencies` for layer rules.
+      'boundaries/no-unknown': 'off',
       // Some root-level `src/*` entrypoints (e.g. `main.tsx`, `sw.ts`) are not FSD slices.
       // We still enforce all layer-to-layer boundaries; we just don't require every file to map to an element.
       'boundaries/no-unknown-files': 'off',

@@ -1,13 +1,42 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+
+import {
+  AuthCallbackPage,
+  CompleteProfilePage,
+  DashboardPage,
+  LoginPage,
+  PendingVerificationPage,
+  RegisterPage,
+} from '@/pages';
+
+import { AuthSessionGate } from './AuthSessionGate';
+import { RequireProfileDisplayName } from './RequireProfileDisplayName';
+
 export function App() {
   return (
-    <main className="min-h-dvh bg-slate-950 text-slate-100">
-      <div className="mx-auto w-full max-w-md px-4 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight">Nexus</h1>
-        <p className="mt-2 text-sm text-slate-300">
-          Scaffold is up. Next: FSD slices, Supabase auth, and offline-first flows.
-        </p>
-      </div>
-    </main>
+    <BrowserRouter>
+      <main className="min-h-dvh bg-slate-950 text-slate-100">
+        <div className="mx-auto w-full max-w-md px-4 py-10">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/register/pending-verification"
+              element={<PendingVerificationPage />}
+            />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route element={<AuthSessionGate />}>
+              <Route
+                path="/complete-profile"
+                element={<CompleteProfilePage />}
+              />
+              <Route element={<RequireProfileDisplayName />}>
+                <Route path="/" element={<DashboardPage />} />
+              </Route>
+            </Route>
+          </Routes>
+        </div>
+      </main>
+    </BrowserRouter>
   );
 }
-
