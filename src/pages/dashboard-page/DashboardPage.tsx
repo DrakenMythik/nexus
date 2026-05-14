@@ -11,9 +11,11 @@ export function DashboardPage() {
   return (
     <div className="space-y-2">
       {readyForName && name ? (
-        <p className="text-lg font-medium text-slate-100">Hello, {name}</p>
+        <p className="text-lg font-medium text-foreground">Hello, {name}</p>
       ) : null}
-      <p className="text-sm text-slate-500">Nexus Dashboard (Protected)</p>
+      <p className="text-sm text-muted-foreground">
+        Nexus Dashboard (Protected)
+      </p>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,9 +61,19 @@ export function AuthCallbackPage() {
   }, [navigate, supabase]);
 
   return (
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 text-center">
-      <p className="text-sm font-medium text-slate-200">Completing sign in…</p>
-      <p className="text-xs text-slate-500">Connecting your session.</p>
+    <div
+      className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center"
+      role="status"
+      aria-live="polite"
+    >
+      <Loader2
+        aria-hidden
+        className="size-6 animate-spin text-muted-foreground"
+      />
+      <p className="text-sm font-medium text-foreground">
+        Completing sign in
+      </p>
+      <p className="text-xs text-muted-foreground">Connecting your session.</p>
     </div>
   );
 }

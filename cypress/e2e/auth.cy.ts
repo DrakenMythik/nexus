@@ -18,13 +18,11 @@ describe('Email auth on login', () => {
   it('submits the email form and shows auth feedback', () => {
     cy.visit('/login');
     cy.contains('h1', 'Sign in').should('be.visible');
-    cy.get('#auth-email').type('e2e@example.com');
-    cy.get('#auth-password').type('password123');
-    cy.get('form[aria-labelledby="email-auth-heading"]').within(() => {
-      cy.get('button[type="submit"]').click();
-    });
+    cy.get('input[name="email"]').type('e2e@example.com');
+    cy.get('input[name="password"]').type('password123');
+    cy.get('button[type="submit"]').click();
     cy.wait('@token');
-    cy.get('[role="alert"]')
+    cy.get('[data-sonner-toast]', { timeout: 5000 })
       .should('be.visible')
       .and('contain.text', 'Invalid email or password');
   });
