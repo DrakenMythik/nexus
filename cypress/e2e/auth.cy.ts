@@ -22,7 +22,7 @@ describe('Email auth on login', () => {
     cy.get('input[name="password"]').type('password123');
     cy.get('button[type="submit"]').click();
     cy.wait('@token');
-    cy.get('[data-sonner-toast]', { timeout: 5000 })
+    cy.get('[data-slot="alert"][role="alert"]', { timeout: 5000 })
       .should('be.visible')
       .and('contain.text', 'Invalid email or password');
   });

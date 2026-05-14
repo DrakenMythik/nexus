@@ -1,12 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { useSupabase } from '@/shared/api';
 import {
+  Alert,
+  AlertDescription,
   Button,
   Form,
   FormControl,
@@ -35,12 +37,18 @@ export interface EmailAuthFormProps {
 export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
   const client = useSupabase();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '' },
     mode: 'onSubmit',
   });
+
+  const clearSubmitError = () => {
+    if (submitError) setSubmitError(null);
+  };
 
   async function onSubmit(values: Values) {
     const result =
@@ -49,7 +57,7 @@ export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
         : await signUpWithEmail(client, values);
 
     if (!result.ok) {
-      toast.error(result.message);
+      setSubmitError(result.message);
       return;
     }
 
@@ -67,7 +75,10 @@ export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
       return;
     }
 
-    toast.success("You're signed in.");
+    const from = (
+      location.state as { from?: { pathname?: string } } | null
+    )?.from?.pathname;
+    void navigate(from ?? '/', { replace: true });
   }
 
   const submitting = form.formState.isSubmitting;
@@ -82,6 +93,11 @@ export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
         }}
         noValidate
       >
+        {submitError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        )}
         <div className="space-y-3">
           <FormField
             control={form.control}
@@ -95,6 +111,10 @@ export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
                     autoComplete="email"
                     required
                     {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      clearSubmitError();
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -116,6 +136,10 @@ export function EmailAuthForm({ variant, className }: EmailAuthFormProps) {
                     required
                     minLength={6}
                     {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      clearSubmitError();
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
