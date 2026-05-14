@@ -21,7 +21,10 @@ jobs:
 
       - name: Run Linter
         run: npm run lint
-        
+
+      - name: Lint agent context (ctxlint)
+        run: npm run lint:ctx
+
       - name: Build the app
         run: npm run build
         

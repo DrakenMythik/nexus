@@ -14,32 +14,35 @@ These files are the source of truth. If anything in this document conflicts with
 - [`.cursor/rules/01-tech-stack.mdc`](.cursor/rules/01-tech-stack.mdc) — tech stack and global conventions.
 - [`.cursor/rules/02-fsd.mdc`](.cursor/rules/02-fsd.mdc) — Feature-Sliced Design layers and import rules.
 - [`.cursor/rules/03-agent-boundaries.mdc`](.cursor/rules/03-agent-boundaries.mdc) — security, anti-hallucination, and execution boundaries.
+- [`.cursor/rules/04-frontend-implementation.mdc`](.cursor/rules/04-frontend-implementation.mdc) — frontend UI standards (React, Tailwind, FSD, accessibility).
 
 ## Repository State
 
-This repository is in an **early scaffolding phase**. At time of writing, only documentation, Cursor rules, and notes exist. There is no `src/`, `supabase/`, `docs/`, `package.json`, or build tooling on disk yet.
+The repository contains a **Vite + React 19** frontend under [`src/`](src/), **Supabase** SQL migrations under [`supabase/`](supabase/), supporting documentation under [`docs/`](docs/), and Node tooling in [`package.json`](package.json). The directory tree in [`README.md`](README.md) describes the **target** FSD layout; not every layer directory may exist until those slices are added.
 
-The structure described in [`README.md`](README.md) is the **intended target**, not the current state. Do not assume planned directories exist.
+## CI and verification
+
+Pull requests targeting `main` run [`.github/workflows/main-protection.yml`](.github/workflows/main-protection.yml): `npm ci`, ESLint (`npm run lint`), agent context lint (`npm run lint:ctx`), `npm run build`, and Cypress (`npm run test:e2e:ci`).
 
 ## Agent Workflow
 
-1. **Inspect before acting.** Always check the current repository state (files, tooling, scripts) before suggesting commands or imports. Do not assume scripts like `npm run build` or `npm test` exist.
+1. **Inspect before acting.** Check the current repository state (files, tooling, scripts in `package.json`) before suggesting commands or imports.
 2. **Stay scoped.** Only modify files required by the user's request. Do not opportunistically scaffold unrelated areas.
-3. **Ask before scaffolding.** Do not create major planned directories or systems (`src/`, `supabase/`, `docs/`, `package.json`, build configs, CI workflows, framework setup) without explicit user confirmation. Single small files inside an already-existing area do not require a question.
+3. **Ask before large changes.** Do not create major new systems or broad refactors without explicit user confirmation. Small, request-scoped edits do not require a separate question.
 4. **Respect user changes.** Do not revert or "clean up" files the user has authored unless asked.
 5. **Git safety.** Never run destructive or irreversible git commands (force push, hard reset, history rewrites) and never commit unless the user explicitly asks.
 
 ## Architecture Expectations
 
-When implementation work begins, follow the planned stack:
+Follow the stack documented in the Cursor rules and README:
 
 - **Core:** React 19, TypeScript (strict), Vite.
 - **Styling:** Tailwind CSS.
 - **State:** Zustand for offline cache, React Query for server state.
 - **PWA:** `vite-plugin-pwa` using the **InjectManifest** strategy.
 - **Auth:** Supabase Auth (Email/Password and OAuth providers).
-- **Data:** Supabase PostgreSQL via `@supabase/supabase-js`.
-- **Architecture:** Feature-Sliced Design with strict unidirectional dependencies (`app` → `pages` → `widgets` → `features` → `entities` → `shared`).
+- **Data:** Supabase PostgreSQL via the Supabase JS client (see `package.json` dependencies).
+- **Architecture:** Feature-Sliced Design with strict unidirectional dependencies (`app` → `pages` → `widgets` → `features` → `entities` → `shared`) under `src/`.
 
 ## Coding Standards
 
@@ -53,14 +56,13 @@ When implementation work begins, follow the planned stack:
 ## Security and Dependencies
 
 - **Secrets never in code.** API keys, Supabase URLs, and tokens live in `.env` (gitignored) and are read via `import.meta.env.*` in Vite.
-- **Verify packages exist** before suggesting an import. If a dependency is not in `package.json` (once it exists), confirm it on the registry first.
+- **Verify packages exist** before suggesting an import. If a dependency is not in `package.json`, confirm it on the registry first.
 - **Do not commit** files that may contain secrets (`.env`, `.env.local`, credentials, key files).
 - **Supabase `public` tables:** do not leave new tables exposed to the **`anon`** role by default. After `CREATE TABLE`, RLS, and grants to `authenticated` (or other intended roles), explicitly **`REVOKE`** privileges from **`anon`** (at minimum `SELECT`) unless anonymous access is explicitly required.
 
 ## Validation
 
-- Run the **narrowest relevant check** for the change you made (type-check the touched package, run the affected test file, lint the edited files).
-- If validation cannot be run because the project is not scaffolded yet (no `package.json`, no scripts), say so explicitly in your response instead of inventing or skipping commands.
+- Run the **narrowest relevant check** for the change you made (for example `npm run lint`, `npm run lint:ctx`, `npm run test:unit`, or `npm run build`).
 - After substantive edits, check for linter errors on files you modified and fix any you introduced.
 
 ## Boundaries

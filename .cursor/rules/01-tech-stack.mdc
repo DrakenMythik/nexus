@@ -8,7 +8,7 @@ alwaysApply: true
 - Styling: Tailwind CSS.
 - Offline/PWA Orchestration: vite-plugin-pwa utilizing the InjectManifest strategy.
 - Authentication: Supabase Auth (Email/Password or OAuth).
-- Data Layer: Supabase PostgreSQL (via `@supabase/supabase-js`).
+- Data Layer: Supabase PostgreSQL via the Supabase JS client listed in package.json dependencies.
 - State Management: Zustand (offline cache) and React Query.
 
 # Conventions
