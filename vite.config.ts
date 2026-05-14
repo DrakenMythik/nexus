@@ -16,8 +16,8 @@ export default defineConfig({
         short_name: 'Nexus',
         description:
           'Lightweight lifting, sleep, nutrition, and habit tracker with offline resilience.',
-        theme_color: '#0b1220',
-        background_color: '#0b1220',
+        theme_color: '#fafafa',
+        background_color: '#fafafa',
         display: 'standalone',
         start_url: '/',
         icons: [
