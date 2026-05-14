@@ -9,6 +9,7 @@ import {
   createSupabaseBrowserClient,
   SupabaseClientProvider,
 } from '@/shared/api';
+import { Toaster } from '@/shared/ui';
 
 import { AuthStateBridge } from './AuthStateBridge';
 import { buildPersistQueryOptions, getQueryPersister } from './query-persist';
@@ -38,6 +39,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <SupabaseClientProvider client={supabase}>
       <AuthStateBridge />
       {children}
+      <Toaster richColors closeButton position="top-right" />
     </SupabaseClientProvider>
   );
 

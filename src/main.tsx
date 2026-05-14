@@ -3,7 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { App } from './app/App';
 import { AppProviders } from './app/AppProviders';
+import { initTheme } from '@/shared/lib';
 import './styles/global.css';
+
+initTheme();
 
 void registerSW({ immediate: true });
 
