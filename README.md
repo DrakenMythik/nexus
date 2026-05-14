@@ -11,7 +11,7 @@ Lightweight, personal lifting, sleep, nutrition and habit tracker. Designed as a
 - **PWA:** `vite-plugin-pwa` utilizing the InjectManifest strategy for robust offline orchestration.
 
 **Backend & Data Layer:**
-- **Database:** Supabase PostgreSQL (accessed via `@supabase/supabase-js`).
+- **Database:** Supabase PostgreSQL (accessed via the Supabase JS client in `package.json`).
 - **Authentication:** Supabase Auth (Email/Password & OAuth).
 
 ## 📁 Repository Structure
@@ -34,3 +34,8 @@ nexus/
 ├── .env.example            # Environment variable template
 ├── package.json            
 └── README.md               # The entry point for developers and Cursor
+```
+
+## Continuous integration
+
+Pull requests to `main` run the **GNAP Pipeline: Verification** workflow ([`.github/workflows/main-protection.yml`](.github/workflows/main-protection.yml)): install dependencies with `npm ci`, run ESLint (`npm run lint`), lint agent context with [ctxlint](https://github.com/YawLabs/ctxlint) (`npm run lint:ctx`), build the app (`npm run build`), and run Cypress in CI (`npm run test:e2e:ci`).

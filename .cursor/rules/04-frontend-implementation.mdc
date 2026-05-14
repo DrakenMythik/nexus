@@ -5,19 +5,19 @@ alwaysApply: false
 ---
 # Nexus Frontend Implementation
 
-Nexus is a **mobile-first PWA** for lifting, sleep, nutrition, and habits. Offline resilience is a core constraint—avoid UI flows that assume uninterrupted network or break caching/sync assumptions without an explicit product decision.
+Nexus is a **mobile-first PWA** for lifting, sleep, nutrition, and habits. Offline resilience is a core constraint—avoid UI flows that assume uninterrupted network or break caching and sync assumptions without an explicit product decision.
 
 ## Stack boundaries
 
 - **SPA:** React 19 + TypeScript + **Vite** + **react-router-dom**. Do not assume Next.js, SSR, or RSC patterns unless the repo gains a Next app.
-- **Styling:** Tailwind utility classes on **`className`**. Keep [`src/styles/global.css`](src/styles/global.css) limited to Tailwind layers/tokens; avoid new scattered CSS files unless the codebase already uses a shared pattern in `shared/` or app-level styles.
-- **State:** TanStack React Query for server state; Zustand for offline/cache-oriented client state—follow slice boundaries in `.cursor/rules/01-tech-stack.mdc`.
-- **Architecture:** Respect Feature-Sliced Design imports and public APIs (`.cursor/rules/02-fsd.mdc`). UI code belongs in `pages/`, `widgets/`, `features/`, `entities/`, or `shared/`—never violate upward imports.
+- **Styling:** Tailwind utility classes on **`className`**. Keep [`src/styles/global.css`](src/styles/global.css) limited to Tailwind layers and design tokens; avoid new scattered CSS files unless the codebase already uses a shared pattern in `src/shared/` or app-level styles.
+- **State:** TanStack React Query for server state; Zustand for offline-oriented and cache-oriented client state—follow slice boundaries in `.cursor/rules/01-tech-stack.mdc`.
+- **Architecture:** Respect Feature-Sliced Design imports and public APIs (`.cursor/rules/02-fsd.mdc`). UI code belongs in `src/pages/`, `src/features/`, `src/entities/`, or `src/shared/`—and in additional FSD layers such as widgets when those slices exist—never violate upward imports.
 
 ## Components and TypeScript
 
 - Use **function components** and hooks only.
-- Define **`Props` interfaces/types** (or inline typed props) for exported components; prefer **`interface` for object shapes** used across exports.
+- Define **Props** interfaces or types (or inline typed props) for exported components; prefer **`interface` for object shapes** used across exports.
 - Prefer **readable code** over micro-optimizations unless profiling shows a hotspot.
 - Prefer **early returns** for guard clauses (loading, missing data, feature flags) so the happy-path JSX stays shallow.
 - Match **existing formatting** in `src/` (quotes, semicolons, import style) and pass **`npm run lint`**.
@@ -25,7 +25,7 @@ Nexus is a **mobile-first PWA** for lifting, sleep, nutrition, and habits. Offli
 ## Styling conventions
 
 - Prefer **Tailwind** utilities for layout, spacing, typography, and states (`focus:`, `disabled:`, `dark:` when used consistently).
-- For **conditional `className`**, prefer small booleans, arrays filtered/joined, or a tiny helper—avoid long nested ternaries. Add **`clsx`** / **`tailwind-merge`** only if the project already depends on them or you introduce them as an intentional dependency with consistent usage.
+- For **conditional `className`**, prefer small booleans, arrays filtered then joined, or a tiny helper—avoid long nested ternaries. Add **`clsx`** / **`tailwind-merge`** only if the project already depends on them or you introduce them as an intentional dependency with consistent usage.
 - Accept **`className?: string`** on reusable UI and merge with primitives via `${base} ${className ?? ''}` or an equivalent safe pattern.
 
 ## Events and naming
@@ -36,7 +36,7 @@ Nexus is a **mobile-first PWA** for lifting, sleep, nutrition, and habits. Offli
 
 - Prefer **semantic HTML** (`button`, `a`, `label`, headings) before custom roles.
 - Associate controls with labels: **`htmlFor` / `id`**, **`aria-labelledby`** / **`aria-describedby`** when headings or helper text establish context.
-- For **custom interactive** surfaces (non-native buttons/links), support **keyboard** interaction (`Enter`/`Space` where appropriate), visible **focus**, and **disabled** state—do not default to **`tabIndex={0}`** on non-interactive wrappers (avoid sabotaging focus order).
+- For **custom interactive** surfaces (non-native buttons and links), support **keyboard** interaction (`Enter`/`Space` where appropriate), visible **focus**, and **disabled** state—do not default to **`tabIndex={0}`** on non-interactive wrappers (avoid sabotaging focus order).
 - Mirror WCAG-minded patterns from the [ARIA authoring practices](https://www.w3.org/WAI/ARIA/apg/) when building dialogs, menus, or disclosure widgets.
 
 ## Product-specific cautions
