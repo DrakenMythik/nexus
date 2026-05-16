@@ -8,6 +8,7 @@ import {
   PendingVerificationPage,
   RegisterPage,
 } from '@/pages';
+import { ThemeToggle } from '@/shared/ui';
 
 import { AuthSessionGate } from './AuthSessionGate';
 import { RequireProfileDisplayName } from './RequireProfileDisplayName';
@@ -15,7 +16,10 @@ import { RequireProfileDisplayName } from './RequireProfileDisplayName';
 export function App() {
   return (
     <BrowserRouter>
-      <main className="min-h-dvh bg-slate-950 text-slate-100">
+      <main className="min-h-dvh bg-background text-foreground">
+        <div className="mx-auto flex w-full max-w-md items-center justify-end px-4 pt-4">
+          <ThemeToggle />
+        </div>
         <div className="mx-auto w-full max-w-md px-4 py-10">
           <Routes>
             <Route path="/login" element={<LoginPage />} />

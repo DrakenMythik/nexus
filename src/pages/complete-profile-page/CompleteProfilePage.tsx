@@ -1,6 +1,10 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { type FormEvent, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 import {
   profileQueryKeys,
@@ -9,6 +13,26 @@ import {
   useUserStore,
 } from '@/entities/user';
 import { useSupabase } from '@/shared/api';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+  Skeleton,
+} from '@/shared/ui';
+
+const schema = z.object({
+  displayName: z.string().trim().min(1, 'Enter a display name.'),
+});
+type Values = z.infer<typeof schema>;
 
 export function CompleteProfilePage() {
   const client = useSupabase();
@@ -17,34 +41,57 @@ export function CompleteProfilePage() {
   const userId = useUserStore((s) => s.userId);
   const { data: profile, isPending } = useProfileQuery();
 
-  const [displayName, setDisplayName] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<
-    { kind: 'error'; text: string } | null
-  >(null);
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { displayName: '' },
+    mode: 'onSubmit',
+  });
 
   const existingName = profile?.display_name?.trim();
 
   if (isPending) {
     return (
-      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 text-center">
-        <p className="text-sm font-medium text-slate-200">Loading…</p>
-        <p className="text-xs text-slate-500">Loading your profile.</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Finish setting up
+          </h1>
+          <CardDescription>Loading your profile.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+        </CardContent>
+      </Card>
     );
   }
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    setFeedback(null);
-    const trimmed = displayName.trim();
-    if (!trimmed) {
-      setFeedback({ kind: 'error', text: 'Enter a display name.' });
-      return;
-    }
-    setSubmitting(true);
+  if (existingName) {
+    return (
+      <Card>
+        <CardHeader>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Profile complete
+          </h1>
+          <CardDescription>
+            You already have a display name set. Continue to the dashboard.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild className="w-full">
+            <Link to="/">Go to dashboard</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  async function onSubmit(values: Values) {
     try {
-      const updated = await upsertProfile(client, { display_name: trimmed });
+      const updated = await upsertProfile(client, {
+        display_name: values.displayName,
+      });
       if (userId) {
         queryClient.setQueryData(profileQueryKeys.byUserId(userId), updated);
       }
@@ -52,84 +99,63 @@ export function CompleteProfilePage() {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Could not save your profile.';
-      setFeedback({ kind: 'error', text: message });
-    } finally {
-      setSubmitting(false);
+      toast.error(message);
     }
   }
 
-  if (existingName) {
-    return (
-      <div className="space-y-8">
-        <header>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
-            Profile complete
-          </h1>
-          <p className="mt-2 text-sm text-slate-400">
-            You already have a display name set. Continue to the dashboard.
-          </p>
-        </header>
-        <Link
-          to="/"
-          className="flex w-full items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-500"
-        >
-          Go to dashboard
-        </Link>
-      </div>
-    );
-  }
+  const submitting = form.formState.isSubmitting;
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
+    <Card>
+      <CardHeader>
+        <h1 className="text-2xl font-semibold tracking-tight">
           Finish setting up
         </h1>
-        <p className="mt-2 text-sm text-slate-400">
+        <CardDescription>
           Choose how we should greet you in the app. You can change this later.
-        </p>
-      </header>
-
-      <form
-        onSubmit={(ev) => {
-          void onSubmit(ev);
-        }}
-        className="space-y-4"
-        aria-labelledby="complete-profile-heading"
-      >
-        <h2 id="complete-profile-heading" className="sr-only">
-          Display name
-        </h2>
-        <label
-          className="block text-xs text-slate-400"
-          htmlFor="complete-profile-display-name"
-        >
-          Display name
-          <input
-            id="complete-profile-display-name"
-            type="text"
-            name="displayName"
-            autoComplete="nickname"
-            required
-            minLength={1}
-            value={displayName}
-            onChange={(ev) => setDisplayName(ev.target.value)}
-            className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none ring-sky-500/40 focus:border-sky-500 focus:ring-2"
-          />
-        </label>
-        {feedback ? (
-          <p className="text-sm text-amber-200/90" role="alert">
-            {feedback.text}
-          </p>
-        ) : null}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {submitting ? 'Saving…' : 'Save and continue'}
-        </button>
-      </form>
-    </div>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form
+            onSubmit={(e) => {
+              void form.handleSubmit(onSubmit)(e);
+            }}
+            className="space-y-4"
+            noValidate
+          >
+            <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Display name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      autoComplete="nickname"
+                      required
+                      minLength={1}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" disabled={submitting} className="w-full">
+              {submitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Saving
+                </>
+              ) : (
+                'Save and continue'
+              )}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }
