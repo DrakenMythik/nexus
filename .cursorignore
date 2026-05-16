@@ -70,6 +70,7 @@ junit.xml
 .env.*
 !.env.example
 !.env.*.example
+*diff
 
 *.pem
 *.key
