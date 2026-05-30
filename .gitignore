@@ -412,6 +412,9 @@ FodyWeavers.xsd
 # Built Visual Studio Code Extensions
 *.vsix
 
+# Compound Engineering local config (machine-specific)
+.compound-engineering/*.local.yaml
+
 # Windows Installer files from build outputs
 *.cab
 *.msi
