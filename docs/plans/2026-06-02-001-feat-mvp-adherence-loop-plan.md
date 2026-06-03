@@ -13,7 +13,8 @@
 
 Implement the Nexus MVP "Adherence Loop": load a preset program, serve up
 today's session, log a workout with a fast offline-first guided UI, capture a
-daily readiness vibe-check, and surface **readiness-adjusted consistency**
+daily body check-in (a single 1–5 readiness number), and surface
+**readiness-adjusted consistency**
 feedback plus a static knowledge nudge. This is the smallest version that proves
 the core bet — that a workout app treating the user as a whole system keeps them
 consistent — and the one the user opens daily.
@@ -33,7 +34,7 @@ training appropriately for your state is the win condition; a smart rest on a
 low-readiness day counts as success, not a broken streak (origin §1, §8.3).
 
 **In scope (MVP floor, origin §5):** preset program → today's session, guided
-offline logging, manual readiness vibe-check, readiness-adjusted consistency
+offline logging, a single-number body check-in, readiness-adjusted consistency
 feedback, static knowledge nudges.
 
 **Explicitly out (origin §6–§7):** health-OS telemetry, HRV/sleep auto-import,
@@ -48,7 +49,7 @@ gamification visualization, social, AI programming.
 |-----|--------|-------------|
 | R1 — Preset program, "today's session" served up | MVP-1 | U1, U2, U7, U8, U9 |
 | R2 — Guided, offline-first workout execution + logging | MVP-2 | U1, U4, U7, U8, U9, U10 |
-| R3 — Manual readiness vibe-check (sleep + energy, 1–5) | MVP-3 | U1, U3, U7, U8 |
+| R3 — Manual body check-in (single 1–5 readiness number) | MVP-3 | U1, U3, U7, U8 |
 | R4 — Readiness-adjusted consistency feedback | MVP-4 | U3, U5, U8 |
 | R5 — Static knowledge nudges (no LLM) | MVP-5 | U6, U8 |
 | R6 — Consistency north-star measurable (≥80%/4wk) | §4 | U5 |
@@ -67,17 +68,18 @@ immutable from the client. User participation is modeled by
 `user_program_enrollments`.
 
 **KTD-2 — `readiness_checks` is a dedicated table, separate from
-`health_metrics`.** Readiness is a subjective daily check (sleep quality +
-energy, 1–5) with a one-row-per-day constraint feeding the consistency score;
+`health_metrics`.** Readiness is a subjective daily body check-in — a **single
+1–5 number** — with a one-row-per-day constraint feeding the consistency score;
 `health_metrics` holds objective measurements. Keeping them separate avoids
-overloading semantics and lets readiness evolve toward Phase 3 auto-import
-cleanly. Relationship noted for future reconciliation.
+overloading semantics and lets readiness evolve toward multi-dimension input
+(Phase 2) and auto-import (Phase 3) cleanly. Relationship noted for future
+reconciliation.
 
 **KTD-3 — Readiness-adjusted consistency formula (v1, tunable).** Resolves
 OQ-3. Constants live in one module (`entities/consistency`) so they are tunable
 without touching call sites.
-- `readiness_score = sleep_quality + energy` → range 2–10.
-- A day is **low-readiness** when `readiness_score ≤ LOW_THRESHOLD` (v1 = 4).
+- `readiness` is the single body check-in number → range 1–5 (no derivation).
+- A day is **low-readiness** when `readiness ≤ LOW_THRESHOLD` (v1 = 2).
 - Per ISO week, against the program's `days_per_week` (= weekly target):
   - `completed` = distinct days with a completed `workout_session`.
   - `smartRestCredits` = low-readiness days with no completed session, capped at
@@ -181,9 +183,7 @@ erDiagram
     uuid id PK
     uuid user_id FK
     date check_date
-    smallint sleep_quality "1-5"
-    smallint energy "1-5"
-    smallint readiness_score "derived 2-10"
+    smallint readiness "1-5 single body check-in"
     text note "nullable"
     timestamptz created_at
   }
@@ -238,8 +238,8 @@ sequenceDiagram
   U->>D: open app
   D->>S: fetch enrollment + today's session + today's readiness + 4wk consistency
   alt no readiness logged today
-    D->>R: show vibe-check prompt
-    U->>R: sleep 1-5, energy 1-5
+    D->>R: show body check-in prompt
+    U->>R: readiness 1-5 (single tap)
     R->>S: upsert readiness_checks (check_date = today)
   end
   U->>W: start today's session
@@ -261,13 +261,13 @@ New FSD slices (additions to existing `src/`):
 src/
 ├── entities/
 │   ├── program/            # U2  catalog types + queries
-│   ├── readiness/          # U3  readiness types + queries + score derivation
+│   ├── readiness/          # U3  readiness types + queries (single 1-5 check-in)
 │   ├── workout/            # U4  session/set types + queries + offline buffer
 │   ├── consistency/        # U5  readiness-adjusted scoring (pure functions)
 │   └── knowledge/          # U6  static nudge catalog + selection
 ├── features/
 │   ├── select-program/     # U7  enroll in the default program
-│   ├── log-readiness/      # U7  vibe-check form
+│   ├── log-readiness/      # U7  single 1-5 body check-in form
 │   └── log-workout-set/    # U7  set-logging controls
 ├── widgets/                # U8  new FSD layer
 │   ├── today-session/
@@ -345,24 +345,24 @@ prior active). Use the shared Supabase client; expose React Query keys. Mirror
 **Verification:** unit tests pass; barrel exposes only the public API; no
 cross-slice imports.
 
-### U3. `entities/readiness` — readiness types, queries, score derivation
+### U3. `entities/readiness` — readiness types and queries
 
-**Goal:** Persist and read the daily vibe-check; derive `readiness_score`.
+**Goal:** Persist and read the daily body check-in (a single 1–5 number).
 **Requirements:** R3, R4.
 **Dependencies:** U1.
 **Files:** `src/entities/readiness/model/types.ts`,
-`src/entities/readiness/model/derive-score.ts`,
-`src/entities/readiness/model/derive-score.test.ts`,
+`src/entities/readiness/model/readiness.ts` (1–5 validation/guard + constants),
+`src/entities/readiness/model/readiness.test.ts`,
 `src/entities/readiness/api/readiness-queries.ts`,
 `src/entities/readiness/api/readiness-queries.test.ts`,
 `src/entities/readiness/index.ts`
-**Approach:** `deriveReadinessScore({sleepQuality, energy})` → `sleep + energy`
-(KTD-3). Queries: `getReadinessForDate(userId, date)`,
-`upsertReadiness(userId, date, {sleepQuality, energy, note})` (writes derived
-score). One row per `(user_id, check_date)`.
+**Approach:** `readiness` is a single 1–5 value — no derivation (KTD-3). Provide
+an `isValidReadiness`/clamp guard and the `READINESS_MIN`/`READINESS_MAX`
+constants. Queries: `getReadinessForDate(userId, date)`,
+`upsertReadiness(userId, date, { readiness, note })`. One row per
+`(user_id, check_date)`.
 **Test scenarios:**
-- `deriveReadinessScore` maps {sleep:1,energy:1}→2 and {5,5}→10; rejects
-  out-of-range inputs (1–5 guard).
+- Validation accepts 1–5 and rejects 0, 6, and non-integers.
 - `upsertReadiness` updates the same-day row rather than inserting a duplicate.
 - `getReadinessForDate` returns null when none logged.
 **Verification:** unit tests pass; same-day upsert idempotent.
@@ -414,7 +414,7 @@ data fetched via U3/U4.
 must be exhaustively covered.
 **Test scenarios:**
 - A completed session day counts toward weekly adherence.
-- A low-readiness day (score ≤4) with no session counts as a smart-rest credit.
+- A low-readiness day (readiness ≤2) with no session counts as a smart-rest credit.
 - Smart-rest credits are capped at `floor(target/2)` (a fully-rested week does
   NOT reach 100%).
 - A normal-readiness day with no session yields no credit (adherence drops).
@@ -461,16 +461,17 @@ deterministic given a date seed so it's stable across a session. No DB (KTD-4).
   `src/features/log-workout-set/ui/ExerciseLogList.tsx`, `.../index.ts`
 - co-located `*.test.tsx` for each form/control
 **Approach:** Features import only from entities/shared (FSD; no cross-feature
-imports). `ReadinessForm` uses `react-hook-form` + `zod` (existing deps) with two
-1–5 controls + optional note → `upsertReadiness`. `log-workout-set` controls
+imports). `ReadinessForm` uses `react-hook-form` + `zod` (existing deps) with a
+single 1–5 control (e.g., a 5-segment tap selector) + optional note →
+`upsertReadiness`. `log-workout-set` controls
 write to the U4 Zustand buffer (offline-safe). `select-program` calls
 `enrollInProgram`. Deliver loading/empty/error/success states per
 `.cursor/rules/04-frontend-implementation.mdc`.
 **Patterns to follow:** `src/features/auth-by-email/ui/EmailAuthForm.tsx` (RHF +
 zod + shared UI), shared UI kit in `src/shared/ui/`.
 **Test scenarios:**
-- `ReadinessForm` validates 1–5 range, blocks submit on invalid, submits derived
-  payload.
+- `ReadinessForm` validates the single 1–5 value, blocks submit on invalid, and
+  submits `{ readiness, note }`.
 - `SetLogRow` edits weight/reps and marks a set complete in the buffer without a
   network call (offline).
 - `StartProgramButton` triggers enrollment and reflects pending/disabled state.
@@ -490,8 +491,8 @@ zod + shared UI), shared UI kit in `src/shared/ui/`.
 - co-located `*.test.tsx`
 **Approach:** New `widgets` FSD layer (per `.cursor/rules/02-fsd.mdc` layer 3).
 `TodaySessionCard` resolves today's session via KTD-6 and links to the guided
-page. `ReadinessPrompt` shows the vibe-check when none is logged today, else a
-compact summary. `ConsistencySummary` renders streak + 4-week adherence (R6)
+page. `ReadinessPrompt` shows the single 1–5 body check-in when none is logged
+today, else a compact summary. `ConsistencySummary` renders streak + 4-week adherence (R6)
 from U5, framing smart-rest days positively. `KnowledgeNudgeCard` renders the
 selected nudge. Widgets import features/entities/shared only — never pages.
 **Test scenarios:**

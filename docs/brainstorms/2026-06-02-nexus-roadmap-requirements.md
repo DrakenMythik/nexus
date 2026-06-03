@@ -72,7 +72,7 @@ The smallest version that proves the core bet and that the user opens daily.
 |----|-----------|----------------------|
 | MVP-1 | **Preset program → "today's session"** served up automatically | Kills decision fatigue; gives the plan to adhere to |
 | MVP-2 | **Guided, offline-first workout execution** (step-through, set/rep logging) | Frictionless capture; offline resilience is a core constraint |
-| MVP-3 | **Manual readiness vibe-check** (quick self-report) | Cheap readiness signal the consistency score depends on — no health integration required |
+| MVP-3 | **Manual body check-in** — a single 1–5 readiness number | Cheap, single-tap readiness signal the consistency score depends on — no health integration required |
 | MVP-4 | **Readiness-adjusted consistency feedback** (streak/progress that credits smart rest) | The signature mechanic; the reason it keeps you consistent |
 | MVP-5 | **Static knowledge nudges** (curated science notes, no LLM) | Delivers the "knowledge" pillar cheaply; keeps v1 from feeling like just a logger |
 
@@ -145,8 +145,9 @@ bet is proven.
 
 - **OQ-1:** What is the seed preset program for MVP-1 (one opinionated default
   vs. a small library)? Smallest answer: a single default program.
-- **OQ-2:** What dimensions does the vibe-check capture (single 1–5 "readiness"
-  vs. sleep + soreness + energy)? Smaller is better for the floor.
+- **OQ-2 (resolved):** The body check-in is a **single 1–5 readiness number** —
+  one tap, lowest possible friction. Multi-dimension input (sleep, soreness,
+  energy) is deferred to Phase 2's whole-system expansion.
 - **OQ-3:** Exact readiness-adjusted scoring formula — how a prescribed rest is
   credited. Needs a concrete rule before Phase 1 coding.
 - **OQ-4:** Source/curation of static knowledge nudges (MVP-5).
