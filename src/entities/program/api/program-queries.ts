@@ -66,11 +66,11 @@ export async function getProgramWithDays(
 
   const { program_days, ...program } = data;
 
-  const days = [...program_days].sort(bySortOrder).map((day) => {
+  const days = [...(program_days ?? [])].sort(bySortOrder).map((day) => {
     const { program_exercises, ...rest } = day;
     return {
       ...rest,
-      exercises: [...program_exercises].sort(bySortOrder),
+      exercises: [...(program_exercises ?? [])].sort(bySortOrder),
     };
   });
 

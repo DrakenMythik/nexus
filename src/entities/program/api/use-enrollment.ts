@@ -8,6 +8,8 @@ import {
   getActiveEnrollment,
 } from './enrollment-queries';
 
+const ENROLLMENT_STALE_MS = 60_000;
+
 /**
  * Reads the user's active enrollment. `userId` is passed in (not read from a
  * store) so this slice never imports `entities/user` (FSD).
@@ -17,8 +19,14 @@ export function useActiveEnrollmentQuery(userId: string | null) {
 
   return useQuery({
     queryKey: enrollmentQueryKeys.active(userId ?? ''),
-    queryFn: () => getActiveEnrollment(supabase, userId as string),
+    queryFn: async () => {
+      if (!userId) {
+        return null;
+      }
+      return getActiveEnrollment(supabase, userId);
+    },
     enabled: Boolean(userId),
+    staleTime: ENROLLMENT_STALE_MS,
   });
 }
 
@@ -34,7 +42,7 @@ export function useEnrollInProgramMutation() {
       userId: string;
       programId: string;
     }) => enrollInProgram(supabase, userId, programId),
-    onSuccess: () => {
+    onSettled: () => {
       void queryClient.invalidateQueries({
         queryKey: enrollmentQueryKeys.all,
       });

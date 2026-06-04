@@ -25,7 +25,12 @@ export function useProgramWithDaysQuery(programId?: string) {
 
   return useQuery({
     queryKey: programQueryKeys.withDays(programId ?? ''),
-    queryFn: () => getProgramWithDays(supabase, programId as string),
+    queryFn: async () => {
+      if (!programId) {
+        return null;
+      }
+      return getProgramWithDays(supabase, programId);
+    },
     enabled: Boolean(programId),
     staleTime: CATALOG_STALE_MS,
   });

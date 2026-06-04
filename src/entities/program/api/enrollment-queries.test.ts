@@ -62,8 +62,9 @@ describe('enrollInProgram', () => {
       .fn()
       .mockResolvedValue({ error: opts.deactivateError ?? null });
     const deactivateEq1 = vi.fn().mockReturnValue({ eq: deactivateEq2 });
-    const update = vi.fn(() => {
+    const update = vi.fn((payload: { is_active: boolean }) => {
       calls.push('update');
+      expect(payload).toEqual({ is_active: false });
       return { eq: deactivateEq1 };
     });
 
