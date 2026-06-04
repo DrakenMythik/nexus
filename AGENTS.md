@@ -31,7 +31,7 @@ Artifact directories (search before implementing in a related area):
 | [`docs/plans/`](docs/plans/) | Implementation plans from `ce-plan` |
 | [`docs/solutions/`](docs/solutions/) | Past learnings from `ce-compound` (YAML frontmatter, by category) |
 
-Compound skills ship with the Cursor Compound Engineering plugin; Nexus also uses repo skills under [`.cursor/skills/`](.cursor/skills/) for the architect → coder pipeline.
+Compound skills ship with the Cursor Compound Engineering plugin; Nexus also uses repo skills under [`.cursor/skills/`](.cursor/skills/) for the architect → coder pipeline. On Windows, run `pwsh -File scripts/ce-sessions.ps1` for `/ce-sessions` or `/ce-compound` session-history discovery (Git Bash + `PYTHONUTF8` for plugin scripts).
 
 ## Blueprint phase — Supabase
 
