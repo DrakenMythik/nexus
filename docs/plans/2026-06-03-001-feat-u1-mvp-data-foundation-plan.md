@@ -1,7 +1,7 @@
 ---
 title: "feat: U1 MVP data foundation"
 type: feat
-status: completed
+status: active
 date: 2026-06-03
 depth: standard
 origin: docs/brainstorms/2026-06-03-individualized-target-weight-requirements.md
