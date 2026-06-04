@@ -5,7 +5,8 @@
 **Status:** active
 **Depth:** Deep
 **Origin:** `docs/brainstorms/2026-06-02-nexus-roadmap-requirements.md` (Phase 1 / MVP floor)
-**Branch:** `plan/initialstrategy`
+**U1 requirements:** `docs/brainstorms/2026-06-03-individualized-target-weight-requirements.md`
+**Branch:** `mvp/data-foundation`
 
 ---
 
@@ -119,6 +120,25 @@ until U1 executes post-approval, following `.cursor/skills/architect-planning`
 (ERD already provided below) and anon default-deny from
 `.cursor/rules/03-agent-boundaries.mdc`.
 
+**KTD-9 — Working load is per-user, not on the catalog.** `program_exercises`
+carry sets, reps, rest, and notes only — **no `target_weight_kg`**. When logging,
+the guided UI pre-fills weight from the user's most recent `set_logs.weight_kg`
+for that exercise (empty on first exposure). Rationale and acceptance criteria:
+U1 requirements doc above. Phase 2 may add explicit per-user targets without
+migrating logged history.
+
+**KTD-10 — Default seed program = Starting Strength (MVP).** U1 seeds exactly
+one published program (`slug` e.g. `starting-strength-mvp`, `days_per_week = 3`)
+with **two** `program_days` — **Workout A** (`sort_order` 1) and **Workout B**
+(`sort_order` 2). **Workout A:** Squat 3×5, Bench Press 3×5, Deadlift **1×5**.
+**Workout B:** Squat 3×5, Overhead Press 3×5, **Barbell Row** 3×5 (row
+substitutes power clean for MVP friction). SS is a two-workout *alternation*, not
+three fixed days: KTD-6 rotation wraps `A → B → A → B …`, so a 3×/week calendar
+yields `A B A` then `B A B` automatically — no week-parity logic, no seeded "Day
+3". The `3` is the weekly consistency target (`days_per_week`, KTD-3), decoupled
+from the two templates. Resolves the former "pick a template at seed time" open
+question; PDF ingestion adds more catalog rows later (KTD-1).
+
 ---
 
 ## High-Level Technical Design
@@ -167,7 +187,6 @@ erDiagram
     smallint sort_order
     smallint target_sets
     text target_reps
-    numeric target_weight_kg "nullable"
     smallint rest_seconds "nullable"
     text notes "nullable"
   }
@@ -292,31 +311,41 @@ Grouped into three phases. Units are dependency-ordered; U-IDs are stable.
 
 ### U1. Schema migrations, seed program, and generated types
 
-**Goal:** Create the MVP data model and seed one default program.
-**Requirements:** R1, R2, R3.
+**Goal:** Create the MVP data model and seed the default Starting Strength program
+(KTD-10).
+**Requirements:** R1, R2, R3. Product spec: U1 requirements doc (KTD-9 catalog
+load model + KTD-10 seed contents).
 **Dependencies:** none (executes after plan approval per KTD-8).
 **Files:**
-- `supabase/migrations/<ts>_mvp_programs_catalog.sql` (programs, program_days, program_exercises + RLS + SELECT grants + REVOKE anon)
+- `supabase/migrations/<ts>_mvp_programs_catalog.sql` (programs, program_days, program_exercises + RLS + SELECT grants + REVOKE anon; **no weight column** on exercises)
 - `supabase/migrations/<ts>_mvp_user_training.sql` (user_program_enrollments, readiness_checks, set_logs + RLS; ALTER workout_sessions add program_day_id, status, session_date)
-- `supabase/migrations/<ts>_mvp_seed_default_program.sql` (insert one published program with days + exercises)
+- `supabase/migrations/<ts>_mvp_seed_default_program.sql` (KTD-10: one published program, two days A & B, exercises per requirements R9)
 - `src/shared/api/database.types.ts` (extend `Database` with all new tables)
 **Approach:** Mirror the RLS/grant/index pattern in
 `supabase/migrations/20260509191000_core_profiles_workout_health_rls.sql` exactly
 (policies `to authenticated`, `(select auth.uid()) = user_id`, per-table
 `user_id` index). Apply KTD-8 RLS posture: catalog tables get SELECT-only +
 REVOKE anon; user tables get full CRUD policies. Add the unique constraints from
-the HTD. Keep migrations incremental (never edit prior migrations).
+the HTD. Seed slug `starting-strength-mvp` (or equivalent stable slug) with two
+program_days: Day 1 = Workout A (Squat 3×5, Bench 3×5, Deadlift 1×5); Day 2 =
+Workout B (Squat 3×5, OHP 3×5, Barbell Row 3×5). The A/B alternation across a
+3×/week cadence is produced by KTD-6 rotation (wrap over two days), not by
+seeding extra days. `target_reps` as text (`"5"`). Default `rest_seconds`
+e.g. 180 for compounds. Keep migrations incremental (never edit prior migrations).
 **Execution note:** Run `supabase db lint` after writing; re-run advisors per
 `.cursor/skills/architect-planning/SKILL.md`. Verify anon cannot SELECT any new
 table.
 **Patterns to follow:** existing core RLS migration; `revoke_anon_select` migration.
 **Test scenarios:**
 - Covers R1. Seed migration produces exactly one `is_published` program with
-  ≥1 `program_day` and ≥1 `program_exercise` per day.
+  `days_per_week = 3` and exactly two `program_days` (A, B) matching KTD-10
+  (deadlift 1×5 on A; row on B).
+- KTD-6 rotation over the two days wraps `A → B → A → B …`, yielding `A B A` /
+  `B A B` across consecutive 3×/week weeks (no double-A at the week seam).
 - RLS: a second user's JWT returns 0 rows for User A's `workout_sessions`,
   `set_logs`, `readiness_checks`, `user_program_enrollments`.
 - Catalog: `authenticated` can SELECT `programs/program_days/program_exercises`
-  but INSERT/UPDATE/DELETE are denied.
+  but INSERT/UPDATE/DELETE are denied; `program_exercises` has no weight column.
 - `anon` role SELECT on every new table returns permission denied / 0 rows.
 - `readiness_checks` rejects a second row for the same `(user_id, check_date)`.
 - Only one `is_active` enrollment per user can exist.
@@ -379,7 +408,8 @@ constants. Queries: `getReadinessForDate(userId, date)`,
 `src/entities/workout/api/workout-queries.test.ts`, `src/entities/workout/index.ts`
 **Approach:** Per KTD-5, `useActiveSessionStore` holds the in-progress session
 (program_day_id, buffered set logs) and persists to storage so a reload/offline
-mid-workout survives. `completeSession()` flushes session
+mid-workout survives. Expose a read for **last logged weight per exercise** (KTD-9;
+match key precedence in U1 requirements doc) for U7 pre-fill. `completeSession()` flushes session
 (`status='completed'`) + `set_logs` to Supabase via a mutation, then clears the
 buffer. Reads (`getRecentSessions`, `getSessionsInRange`) use React Query.
 Mirror the persistence pattern in `src/app/query-persist.ts` and the Zustand
@@ -606,12 +636,12 @@ persistence (`src/app/query-persist.ts`); local Supabase for migrations/tests.
 
 ## Open Questions (deferred to implementation)
 
-- Exact default-program contents (exercise selection/sets/reps) — pick a simple,
-  well-known full-body 3×/week template at U1 seed time; tunable later.
+- ~~Exact default-program contents~~ — **resolved (KTD-10 / U1 requirements doc).**
 - Initial knowledge-nudge copy (U6) — draft ≥6 short, sourced nudges; wording is
   editable post-MVP.
 - ESLint `eslint-plugin-boundaries` config changes needed to register `widgets`
   — confirm at U8.
+- Last-logged-weight match key and per-set pre-fill (KTD-9) — U4/U7, not U1.
 
 ---
 
