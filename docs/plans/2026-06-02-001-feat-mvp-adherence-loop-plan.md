@@ -81,6 +81,8 @@ OQ-3. Constants live in one module (`entities/consistency`) so they are tunable
 without touching call sites.
 - `readiness` is the single body check-in number → range 1–5 (no derivation).
 - A day is **low-readiness** when `readiness ≤ LOW_THRESHOLD` (v1 = 2).
+- ISO weeks and "today" are computed in the user's timezone (KTD-12), bucketing
+  the user-local `check_date` / `session_date` values (not UTC instants).
 - Per ISO week, against the program's `days_per_week` (= weekly target):
   - `completed` = distinct days with a completed `workout_session`.
   - `smartRestCredits` = low-readiness days with no completed session, capped at
@@ -129,8 +131,9 @@ migrating logged history.
 
 **KTD-10 — Default seed program = Starting Strength (MVP).** U1 seeds exactly
 one published program (`slug` e.g. `starting-strength-mvp`, `days_per_week = 3`)
-with **two** `program_days` — **Workout A** (`sort_order` 1) and **Workout B**
-(`sort_order` 2). **Workout A:** Squat 3×5, Bench Press 3×5, Deadlift **1×5**.
+with **two** `program_days` — **Workout A** (`slug` `workout-a`, `sort_order` 1)
+and **Workout B** (`slug` `workout-b`, `sort_order` 2); each exercise carries a
+stable `slug` (KTD-11). **Workout A:** Squat 3×5, Bench Press 3×5, Deadlift **1×5**.
 **Workout B:** Squat 3×5, Overhead Press 3×5, **Barbell Row** 3×5 (row
 substitutes power clean for MVP friction). SS is a two-workout *alternation*, not
 three fixed days: KTD-6 rotation wraps `A → B → A → B …`, so a 3×/week calendar
@@ -138,6 +141,28 @@ yields `A B A` then `B A B` automatically — no week-parity logic, no seeded "D
 3". The `3` is the weekly consistency target (`days_per_week`, KTD-3), decoupled
 from the two templates. Resolves the former "pick a template at seed time" open
 question; PDF ingestion adds more catalog rows later (KTD-1).
+
+**KTD-11 — Seed migrations are idempotent UPSERTs, never destructive.** The seed
+writes the global catalog with `INSERT … ON CONFLICT (<stable natural key>) DO
+UPDATE`; it **never `DELETE`s** existing catalog rows. User data references the
+catalog by FK (`set_logs.program_exercise_id`, `workout_sessions.program_day_id`,
+`user_program_enrollments.program_id`), so a delete-and-reseed would orphan or
+cascade-destroy user history. Conflict targets are explicit stable `slug` codes:
+`programs.slug` (existing UK), `program_days (program_id, slug)`, and
+`program_exercises (program_day_id, slug)`. `sort_order` is presentation-only and
+may change between seed revisions **without** creating new rows, because identity
+is the slug. Re-running or revising the seed updates prescriptions in place and
+preserves row IDs (and thus all user FKs).
+
+**KTD-12 — Dates are timezone-correct.** Instant/audit columns are `timestamptz`
+(UTC, rendered locally) — unchanged. The *logical-day* columns `check_date` and
+`session_date` stay `date` but hold the user's **local** calendar day, supplied
+by the client from the device timezone — **never** a server-side `current_date` /
+UTC default (which would file a late-night check-in under the wrong day). To make
+"today" and ISO-week bucketing (KTD-3) correct and travel-safe, `public.profiles`
+gains `timezone text not null default 'UTC'` (IANA name) set at onboarding. Past
+rows keep their original local date; only newly created rows use the current
+timezone, so crossing time zones never retroactively shifts history.
 
 ---
 
@@ -164,6 +189,13 @@ erDiagram
   workout_sessions ||--o{ set_logs : "workout_session_id"
   program_exercises ||--o{ set_logs : "program_exercise_id (nullable)"
 
+  profiles {
+    uuid id PK
+    text display_name "nullable"
+    text timezone "new: IANA, not null default UTC"
+    timestamptz created_at
+    timestamptz updated_at
+  }
   programs {
     uuid id PK
     text slug UK
@@ -176,6 +208,7 @@ erDiagram
   program_days {
     uuid id PK
     uuid program_id FK
+    text slug "stable seed key; unique per program"
     smallint day_index
     text name
     smallint sort_order
@@ -183,6 +216,7 @@ erDiagram
   program_exercises {
     uuid id PK
     uuid program_day_id FK
+    text slug "stable seed key; unique per day"
     text name
     smallint sort_order
     smallint target_sets
@@ -201,7 +235,7 @@ erDiagram
   readiness_checks {
     uuid id PK
     uuid user_id FK
-    date check_date
+    date check_date "user-local day (client-supplied, not UTC)"
     smallint readiness "1-5 single body check-in"
     text note "nullable"
     timestamptz created_at
@@ -211,7 +245,7 @@ erDiagram
     uuid user_id FK
     uuid program_day_id FK "nullable (new)"
     text status "new: in_progress|completed|skipped"
-    date session_date "new"
+    date session_date "new; user-local day (client-supplied, not UTC)"
     timestamptz started_at
     timestamptz ended_at
     text notes
@@ -244,6 +278,9 @@ erDiagram
 - Add `user_id` index on every user-owned table; unique
   `(user_id, check_date)` on `readiness_checks`; unique partial index enforcing
   one `is_active` enrollment per user.
+- Stable `slug` (`text not null`) on `program_days` and `program_exercises` for
+  idempotent seed UPSERT (KTD-11): unique `program_days (program_id, slug)` and
+  `program_exercises (program_day_id, slug)`; `programs.slug` already unique.
 
 ### Core loop (sequence)
 
@@ -318,7 +355,7 @@ load model + KTD-10 seed contents).
 **Dependencies:** none (executes after plan approval per KTD-8).
 **Files:**
 - `supabase/migrations/<ts>_mvp_programs_catalog.sql` (programs, program_days, program_exercises + RLS + SELECT grants + REVOKE anon; **no weight column** on exercises)
-- `supabase/migrations/<ts>_mvp_user_training.sql` (user_program_enrollments, readiness_checks, set_logs + RLS; ALTER workout_sessions add program_day_id, status, session_date)
+- `supabase/migrations/<ts>_mvp_user_training.sql` (user_program_enrollments, readiness_checks, set_logs + RLS; ALTER workout_sessions add program_day_id, status, session_date; ALTER profiles add `timezone text not null default 'UTC'` per KTD-12)
 - `supabase/migrations/<ts>_mvp_seed_default_program.sql` (KTD-10: one published program, two days A & B, exercises per requirements R9)
 - `src/shared/api/database.types.ts` (extend `Database` with all new tables)
 **Approach:** Mirror the RLS/grant/index pattern in
@@ -332,6 +369,14 @@ Workout B (Squat 3×5, OHP 3×5, Barbell Row 3×5). The A/B alternation across a
 3×/week cadence is produced by KTD-6 rotation (wrap over two days), not by
 seeding extra days. `target_reps` as text (`"5"`). Default `rest_seconds`
 e.g. 180 for compounds. Keep migrations incremental (never edit prior migrations).
+Per KTD-11, every catalog row carries a stable `slug` (days: `workout-a`,
+`workout-b`; exercises: `squat`, `bench-press`, `deadlift`, `overhead-press`,
+`barbell-row`); the seed uses `INSERT … ON CONFLICT (programs.slug |
+(program_id, slug) | (program_day_id, slug)) DO UPDATE` — no `DELETE` — so
+re-seeding (even with reordered `sort_order`) preserves catalog row IDs and never
+wipes user FK references. Per KTD-12, `check_date` and
+`session_date` carry **no** `current_date`/UTC default (client supplies the
+user-local day); the `profiles.timezone` ALTER defaults existing rows to `'UTC'`.
 **Execution note:** Run `supabase db lint` after writing; re-run advisors per
 `.cursor/skills/architect-planning/SKILL.md`. Verify anon cannot SELECT any new
 table.
@@ -349,6 +394,13 @@ table.
 - `anon` role SELECT on every new table returns permission denied / 0 rows.
 - `readiness_checks` rejects a second row for the same `(user_id, check_date)`.
 - Only one `is_active` enrollment per user can exist.
+- KTD-11: running the seed twice produces no duplicate programs/days/exercises,
+  keeps catalog row IDs stable, and leaves existing `set_logs` /
+  `user_program_enrollments` / `workout_sessions` FK references intact.
+- KTD-11: re-running the seed with a changed `sort_order` updates ordering in
+  place (matched by `slug`) without inserting new rows or orphaning user FKs.
+- KTD-12: `profiles.timezone` exists, defaults existing rows to `'UTC'`, and
+  `check_date` / `session_date` have no server-side date default.
 **Verification:** `supabase db lint` clean; migrations apply on a fresh local DB;
 cross-user and anon access proven denied; types compile against new tables.
 
@@ -389,7 +441,9 @@ cross-slice imports.
 an `isValidReadiness`/clamp guard and the `READINESS_MIN`/`READINESS_MAX`
 constants. Queries: `getReadinessForDate(userId, date)`,
 `upsertReadiness(userId, date, { readiness, note })`. One row per
-`(user_id, check_date)`.
+`(user_id, check_date)`. The `date` is the user's **local** day derived from the
+device/profile timezone (KTD-12), not a UTC default, so a check-in lands on the
+correct day across time zones.
 **Test scenarios:**
 - Validation accepts 1–5 and rejects 0, 6, and non-integers.
 - `upsertReadiness` updates the same-day row rather than inserting a duplicate.
@@ -549,7 +603,9 @@ selected nudge. Widgets import features/entities/shared only — never pages.
 - `src/app/App.tsx` (add `/onboarding`, `/workout` routes)
 - `src/app/RequireActiveProgram.tsx` (gate: redirect to `/onboarding` if no active enrollment)
 **Approach:** `OnboardingPage` confirms/starts the default program
-(`select-program`). `RequireActiveProgram` wraps the dashboard + workout routes,
+(`select-program`) and persists the user's timezone to `profiles.timezone`
+(KTD-12) from `Intl.DateTimeFormat().resolvedOptions().timeZone` if still
+default. `RequireActiveProgram` wraps the dashboard + workout routes,
 nested inside the existing `RequireProfileDisplayName`. `DashboardPage` composes
 the four widgets (mobile-first, `max-w-md`). `WorkoutGuidedPage` renders the
 step-through logging UI from `log-workout-set` over the active session buffer.
@@ -629,6 +685,8 @@ persistence (`src/app/query-persist.ts`); local Supabase for migrations/tests.
 - **New FSD `widgets` layer** introduced (allowed by `.cursor/rules/02-fsd.mdc`);
   ESLint boundaries config may need the widgets layer registered.
 - **`workout_sessions` gains columns** consumed by future phases — keep additive.
+- **`profiles` gains `timezone`** (KTD-12) — additive, `default 'UTC'`; existing
+  rows backfill to UTC and the value is refined at onboarding.
 - **Offline contract:** the workout buffer sets the pattern future write-heavy
   features should follow; document it as the reference approach.
 

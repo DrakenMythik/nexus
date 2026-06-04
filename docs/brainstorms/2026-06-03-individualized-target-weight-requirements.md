@@ -11,10 +11,13 @@ supersedes: individualized-target-weight (same file, expanded scope)
 Ship the MVP **data foundation** (plan U1): new program catalog tables, user
 training tables, `workout_sessions` extensions, RLS/grants per the adherence-loop
 blueprint, extended `database.types.ts`, and **one seeded default program** —
-a **Starting Strength–style** 3×/week template (A / B / A rotation). The catalog
-stores only **shared** prescriptions (sets, reps, rest, notes); **working load
-is never on the catalog** — it is derived per user from their last
-`set_logs.weight_kg` when they log (U4/U7).
+a **Starting Strength–style** two-workout (A/B) template trained 3×/week. The
+catalog stores only **shared** prescriptions (sets, reps, rest, notes); **working
+load is never on the catalog** — it is derived per user from their last
+`set_logs.weight_kg` when they log (U4/U7). Two cross-cutting data-safety rules
+apply: the seed is an **idempotent UPSERT** (never wipes user-referenced catalog
+rows), and **dates are timezone-correct** (local-day columns + `profiles.timezone`)
+so the daily loop works when users cross time zones.
 
 ---
 
@@ -68,7 +71,24 @@ Progression automation stays Phase 2 — U1 does not store computed targets.
 - **KD-6 — Three incremental migrations + types.** Split per plan: catalog,
   user training + `workout_sessions` ALTER, seed. Mirror existing core RLS;
   `supabase db lint` before merge. No SQL in this doc — blueprint is the plan
-  ERD + RLS posture (KTD-8).
+  ERD + RLS posture (KTD-8). The user-training migration also ALTERs
+  `profiles` to add `timezone` (KD-8).
+
+- **KD-7 — Seed is an idempotent UPSERT, never destructive.** The seed migration
+  writes the global catalog with `INSERT … ON CONFLICT (<natural key>) DO UPDATE`
+  and **never `DELETE`s** catalog rows. User rows reference the catalog by FK, so
+  delete-and-reseed would orphan or cascade-destroy logged history. Conflict
+  targets are explicit stable `slug` codes: `programs.slug`, `program_days
+  (program_id, slug)`, `program_exercises (program_day_id, slug)`. `sort_order`
+  is presentation-only — reordering in a later seed does not create new rows.
+  Re-seeding updates prescriptions in place and keeps row IDs stable.
+
+- **KD-8 — Dates are timezone-correct.** Instant columns stay `timestamptz`
+  (UTC). Logical-day columns (`check_date`, `session_date`) stay `date` but hold
+  the user's **local** day, supplied by the client — never a UTC server default.
+  `profiles` gains `timezone` (IANA, default `'UTC'`) so "today" and consistency
+  ISO-week bucketing compute in the user's zone and stay correct when they
+  travel; past rows keep their original local date.
 
 ### Load model (before → after)
 
@@ -110,25 +130,30 @@ flowchart TB
 - R6. Exactly one published program (`is_published = true`) after seed migration.
 - R7. Program metadata: human-readable name (e.g. "Starting Strength"), stable
   slug (e.g. `starting-strength-mvp`), `days_per_week = 3`, short description.
-- R8. **Two** `program_days`, `sort_order` 1–2, `day_index` 1–2:
-  - **Day 1 — Workout A**
-  - **Day 2 — Workout B**
+- R8. **Two** `program_days`, `sort_order` 1–2, `day_index` 1–2, each with a
+  stable `slug`:
+  - **Day 1 — Workout A** (`slug` `workout-a`)
+  - **Day 2 — Workout B** (`slug` `workout-b`)
 
   Starting Strength is a two-workout alternation trained 3×/week, **not** three
   fixed days. Seeding two days lets KTD-6 rotation wrap as `A → B → A → B …`,
   which across a 3-session week produces the correct `A B A` / `B A B` flip-flop
   with no week-parity logic. The `3` lives only in `days_per_week` (the weekly
   consistency target, KTD-3) and is decoupled from the **two** workout templates.
-- R9. Exercises per day (names are catalog text; order via `sort_order`):
+- R9. Exercises per day (names are catalog text; order via `sort_order`; `slug`
+  is the stable seed key, unique within a day):
 
-  | Day | Exercise | `target_sets` | `target_reps` |
-  |-----|----------|---------------|---------------|
-  | A | Squat | 3 | 5 |
-  | A | Bench Press | 3 | 5 |
-  | A | Deadlift | 1 | 5 |
-  | B | Squat | 3 | 5 |
-  | B | Overhead Press | 3 | 5 |
-  | B | Barbell Row | 3 | 5 |
+  | Day | Exercise | `slug` | `target_sets` | `target_reps` |
+  |-----|----------|--------|---------------|---------------|
+  | A | Squat | `squat` | 3 | 5 |
+  | A | Bench Press | `bench-press` | 3 | 5 |
+  | A | Deadlift | `deadlift` | 1 | 5 |
+  | B | Squat | `squat` | 3 | 5 |
+  | B | Overhead Press | `overhead-press` | 3 | 5 |
+  | B | Barbell Row | `barbell-row` | 3 | 5 |
+
+  (`squat` repeats across days but is unique per `program_day_id`, so the
+  `(program_day_id, slug)` conflict key stays valid.)
 
 - R10. Each `program_exercise` has sensible `rest_seconds` for compounds (e.g.
   180s); `notes` nullable. No weight fields.
@@ -144,6 +169,23 @@ flowchart TB
 
 - R14. Phase 2 progression / `user_exercise_targets` can supersede derivation
   without migrating `set_logs`.
+
+### Data integrity and timezones
+
+- R15. Seed migrations are **idempotent UPSERTs** (`ON CONFLICT … DO UPDATE`) and
+  never `DELETE` catalog rows; re-running or revising the seed preserves catalog
+  row IDs and therefore all user FK references (`set_logs.program_exercise_id`,
+  `workout_sessions.program_day_id`, `user_program_enrollments.program_id`).
+- R16. Catalog child tables carry an explicit stable `slug` (`text not null`) as
+  the conflict target: unique `program_days (program_id, slug)` and
+  `program_exercises (program_day_id, slug)`, in addition to `programs.slug`.
+  `sort_order` governs display only and may change without affecting identity.
+- R17. Instant/audit columns are `timestamptz`; `check_date` and `session_date`
+  are `date` holding the user's **local** calendar day, supplied by the client —
+  never a server-side `current_date` / UTC default.
+- R18. `profiles` gains `timezone text not null default 'UTC'` (IANA), captured
+  at onboarding; "today" and ISO-week consistency bucketing use it so the loop
+  stays correct across time zones.
 
 ---
 
@@ -163,6 +205,13 @@ flowchart TB
   catalog; each sees their own last logged weight (or empty) — never the other's.
 - AE5. **R4.** Second readiness row for same `(user_id, check_date)` is rejected.
 - AE6. **R2, R4.** Only one `is_active` enrollment per user.
+- AE7b. **R15.** Re-running the seed after a user has logged sets produces no
+  duplicate catalog rows, keeps `program_exercise` IDs stable, and leaves the
+  user's `set_logs` references intact (no orphaned or deleted history).
+- AE8. **R17, R18.** A user in `America/Denver` logging readiness at 11pm local
+  records `check_date` = that local day (not the next UTC day); after they fly to
+  `Asia/Tokyo`, a new check-in records the new local day while past rows keep
+  their original dates.
 
 ---
 
@@ -205,5 +254,8 @@ flowchart TB
 ### Deferred to U1 implementation (`ce-work`)
 
 - Exact `rest_seconds` and optional `notes` copy per exercise (defaults OK).
-- Seed migration idempotency strategy (delete-and-reseed vs upsert by slug) —
-  planning detail, not product behavior.
+- ~~Seed migration idempotency strategy~~ — **resolved (KD-7 / R15): UPSERT by
+  stable natural keys, never delete-and-reseed, to preserve user FK references.**
+- Where `profiles.timezone` is captured at onboarding (browser
+  `Intl.DateTimeFormat().resolvedOptions().timeZone` vs explicit picker) — U7/U9
+  UX detail; the column and default land in U1.
