@@ -1,0 +1,2 @@
+-- Optional dev seed (catalog seed lives in migrations).
+-- Intentionally empty so `supabase db reset` does not warn on a missing file.

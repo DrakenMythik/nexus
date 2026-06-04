@@ -36,6 +36,24 @@ nexus/
 └── README.md               # The entry point for developers and Cursor
 ```
 
+## Local Supabase
+
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) running.
+
+1. Install dependencies: `npm ci`
+2. Copy env: `cp .env.example .env.local` (or use keys from `npm run supabase:status`)
+3. Start stack: `npm run supabase:start`
+4. Apply migrations: `npm run db:reset`
+5. Lint schema: `npm run db:lint`
+
+| Service | URL |
+|---------|-----|
+| API | http://127.0.0.1:54321 |
+| Studio | http://127.0.0.1:54323 |
+| Mailpit (auth emails) | http://127.0.0.1:54324 |
+
+CLI is available via `npm run supabase -- <command>` (devDependency) or global `npm install -g supabase`.
+
 ## Continuous integration
 
 Pull requests to `main` run the **GNAP Pipeline: Verification** workflow ([`.github/workflows/main-protection.yml`](.github/workflows/main-protection.yml)): install dependencies with `npm ci`, run ESLint (`npm run lint`), lint agent context with [ctxlint](https://github.com/YawLabs/ctxlint) (`npm run lint:ctx`), build the app (`npm run build`), and run Cypress in CI (`npm run test:e2e:ci`).
