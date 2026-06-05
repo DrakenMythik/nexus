@@ -21,7 +21,7 @@ Do not duplicate stack, FSD, security, or UI standards here — they live in the
 
 ## Compound Engineering
 
-Local config (gitignored, machine-specific): copy [`.compound-engineering/config.local.example.yaml`](.compound-engineering/config.local.example.yaml) to `.compound-engineering/config.local.yaml` if missing. Skills read it for optional defaults (for example `plan_output`, `brainstorm_output`).
+Local config (gitignored, machine-specific): copy [`.compound-engineering/config.local.example.yaml`](.compound-engineering/config.local.example.yaml) to a gitignored local override in that directory if missing. Skills read it for optional defaults (for example `plan_output`, `brainstorm_output`).
 
 Artifact directories (search before implementing in a related area):
 
