@@ -23,6 +23,8 @@ Do not duplicate stack, FSD, security, or UI standards here — they live in the
 
 Local config (gitignored, machine-specific): copy [`.compound-engineering/config.local.example.yaml`](.compound-engineering/config.local.example.yaml) to a gitignored local override in that directory if missing. Skills read it for optional defaults (for example `plan_output`, `brainstorm_output`).
 
+Local tooling (gitignored, machine-specific): the entire [`scripts/`](scripts/) directory — catalog PDF import helpers, one-off analysis, and optional `ce-sessions.ps1` for `/ce-sessions` or `/ce-compound` session-history discovery on Windows (`pwsh -File scripts/ce-sessions.ps1`; Git Bash + `PYTHONUTF8` for plugin scripts). Not tracked in git; maintain locally if you use it.
+
 Artifact directories (search before implementing in a related area):
 
 | Path | Purpose |
@@ -31,7 +33,7 @@ Artifact directories (search before implementing in a related area):
 | [`docs/plans/`](docs/plans/) | Implementation plans from `ce-plan` |
 | [`docs/solutions/`](docs/solutions/) | Past learnings from `ce-compound` (YAML frontmatter, by category) |
 
-Compound skills ship with the Cursor Compound Engineering plugin; Nexus also uses repo skills under [`.cursor/skills/`](.cursor/skills/) for the architect → coder pipeline. On Windows, run `pwsh -File scripts/ce-sessions.ps1` for `/ce-sessions` or `/ce-compound` session-history discovery (Git Bash + `PYTHONUTF8` for plugin scripts).
+Compound skills ship with the Cursor Compound Engineering plugin; Nexus also uses repo skills under [`.cursor/skills/`](.cursor/skills/) for the architect → coder pipeline.
 
 ## Blueprint phase — Supabase
 
