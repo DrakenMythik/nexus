@@ -420,6 +420,9 @@ FodyWeavers.xsd
 # Compound Engineering local config (machine-specific)
 .compound-engineering/*.local.yaml
 
+# Local dev/import tooling (catalog PDF parsers, agent helpers); not used in CI or production
+scripts/
+
 # Windows Installer files from build outputs
 *.cab
 *.msi

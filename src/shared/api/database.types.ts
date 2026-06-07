@@ -4,6 +4,27 @@
  */
 export type WorkoutSessionStatus = 'in_progress' | 'completed' | 'skipped';
 
+export type ProgramBlockType =
+  | 'warmup'
+  | 'workout'
+  | 'superset'
+  | 'interval_circuit'
+  | 'cooldown';
+
+export type ExercisePrescriptionMode =
+  | 'sets_reps'
+  | 'time_interval'
+  | 'percentage_1rm';
+
+export type ExerciseProtocol =
+  | 'double_progression'
+  | 'top_set_backoff'
+  | 'percentage_block'
+  | 'interval_progression'
+  | 'circuit';
+
+export type ProgramLevel = 'beginner' | 'intermediate' | 'advanced';
+
 export type Database = {
   public: {
     Tables: {
@@ -101,6 +122,9 @@ export type Database = {
           days_per_week: number;
           is_published: boolean;
           created_at: string;
+          tags: string[];
+          source_folder: string | null;
+          level: ProgramLevel | null;
         };
         Insert: {
           id?: string;
@@ -110,6 +134,9 @@ export type Database = {
           days_per_week: number;
           is_published?: boolean;
           created_at?: string;
+          tags?: string[];
+          source_folder?: string | null;
+          level?: ProgramLevel | null;
         };
         Update: {
           slug?: string;
@@ -117,6 +144,9 @@ export type Database = {
           description?: string | null;
           days_per_week?: number;
           is_published?: boolean;
+          tags?: string[];
+          source_folder?: string | null;
+          level?: ProgramLevel | null;
         };
       };
       program_days: {
@@ -127,6 +157,7 @@ export type Database = {
           day_index: number;
           name: string;
           sort_order: number;
+          focus: string | null;
         };
         Insert: {
           id?: string;
@@ -135,6 +166,7 @@ export type Database = {
           day_index: number;
           name: string;
           sort_order: number;
+          focus?: string | null;
         };
         Update: {
           program_id?: string;
@@ -142,15 +174,55 @@ export type Database = {
           day_index?: number;
           name?: string;
           sort_order?: number;
+          focus?: string | null;
+        };
+      };
+      program_blocks: {
+        Row: {
+          id: string;
+          program_day_id: string;
+          slug: string;
+          block_type: ProgramBlockType;
+          name: string;
+          sort_order: number;
+          instructions: string | null;
+          round_count: number | null;
+        };
+        Insert: {
+          id?: string;
+          program_day_id: string;
+          slug: string;
+          block_type?: ProgramBlockType;
+          name: string;
+          sort_order: number;
+          instructions?: string | null;
+          round_count?: number | null;
+        };
+        Update: {
+          program_day_id?: string;
+          slug?: string;
+          block_type?: ProgramBlockType;
+          name?: string;
+          sort_order?: number;
+          instructions?: string | null;
+          round_count?: number | null;
         };
       };
       program_exercises: {
         Row: {
           id: string;
           program_day_id: string;
+          program_block_id: string | null;
           slug: string;
           name: string;
           sort_order: number;
+          prescription_mode: ExercisePrescriptionMode;
+          protocol: ExerciseProtocol | null;
+          tempo: string | null;
+          superset_letter: string | null;
+          percentage_start: number | null;
+          percentage_increment: number | null;
+          work_seconds: number | null;
           target_sets: number;
           target_reps: string;
           rest_seconds: number | null;
@@ -159,9 +231,17 @@ export type Database = {
         Insert: {
           id?: string;
           program_day_id: string;
+          program_block_id?: string | null;
           slug: string;
           name: string;
           sort_order: number;
+          prescription_mode?: ExercisePrescriptionMode;
+          protocol?: ExerciseProtocol | null;
+          tempo?: string | null;
+          superset_letter?: string | null;
+          percentage_start?: number | null;
+          percentage_increment?: number | null;
+          work_seconds?: number | null;
           target_sets: number;
           target_reps: string;
           rest_seconds?: number | null;
@@ -169,13 +249,68 @@ export type Database = {
         };
         Update: {
           program_day_id?: string;
+          program_block_id?: string | null;
           slug?: string;
           name?: string;
           sort_order?: number;
+          prescription_mode?: ExercisePrescriptionMode;
+          protocol?: ExerciseProtocol | null;
+          tempo?: string | null;
+          superset_letter?: string | null;
+          percentage_start?: number | null;
+          percentage_increment?: number | null;
+          work_seconds?: number | null;
           target_sets?: number;
           target_reps?: string;
           rest_seconds?: number | null;
           notes?: string | null;
+        };
+      };
+      program_exercise_sets: {
+        Row: {
+          id: string;
+          program_exercise_id: string;
+          set_number: number;
+          target_reps: string | null;
+          rest_seconds: number | null;
+          work_seconds: number | null;
+          load_note: string | null;
+        };
+        Insert: {
+          id?: string;
+          program_exercise_id: string;
+          set_number: number;
+          target_reps?: string | null;
+          rest_seconds?: number | null;
+          work_seconds?: number | null;
+          load_note?: string | null;
+        };
+        Update: {
+          program_exercise_id?: string;
+          set_number?: number;
+          target_reps?: string | null;
+          rest_seconds?: number | null;
+          work_seconds?: number | null;
+          load_note?: string | null;
+        };
+      };
+      program_exercise_alternates: {
+        Row: {
+          id: string;
+          program_exercise_id: string;
+          name: string;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          program_exercise_id: string;
+          name: string;
+          sort_order: number;
+        };
+        Update: {
+          program_exercise_id?: string;
+          name?: string;
+          sort_order?: number;
         };
       };
       user_program_enrollments: {
