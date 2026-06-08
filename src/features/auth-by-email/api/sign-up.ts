@@ -1,5 +1,6 @@
 import type { NexusSupabaseClient } from '@/shared/api';
 
+import { authCallbackRedirectUrl } from '../lib/auth-callback-redirect-url';
 import type { AuthEmailResult, EmailPasswordCredentials } from '../model/types';
 
 export async function signUpWithEmail(
@@ -7,7 +8,11 @@ export async function signUpWithEmail(
   credentials: EmailPasswordCredentials,
 ): Promise<AuthEmailResult> {
   const { email, password } = credentials;
-  const { data, error } = await client.auth.signUp({ email, password });
+  const { data, error } = await client.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: authCallbackRedirectUrl() },
+  });
 
   if (error) {
     if (

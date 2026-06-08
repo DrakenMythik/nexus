@@ -21,6 +21,13 @@ describe('signUpWithEmail', () => {
       password: 'secret12',
     });
 
+    expect(signUp).toHaveBeenCalledWith({
+      email: 'a@b.co',
+      password: 'secret12',
+      options: {
+        emailRedirectTo: expect.stringMatching(/\/auth\/callback$/),
+      },
+    });
     expect(result).toEqual({ ok: true, session: fakeSession });
   });
 
