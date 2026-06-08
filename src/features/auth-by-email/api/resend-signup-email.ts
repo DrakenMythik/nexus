@@ -1,15 +1,10 @@
 import type { NexusSupabaseClient } from '@/shared/api';
 
+import { authCallbackRedirectUrl } from '../lib/auth-callback-redirect-url';
+
 export type ResendSignupEmailResult =
   | { ok: true }
   | { ok: false; message: string };
-
-function authCallbackRedirectUrl(): string {
-  if (typeof window === 'undefined') {
-    return '/auth/callback';
-  }
-  return `${window.location.origin}/auth/callback`;
-}
 
 export async function resendSignupEmail(
   client: NexusSupabaseClient,
