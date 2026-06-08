@@ -21,13 +21,15 @@ describe('signUpWithEmail', () => {
       password: 'secret12',
     });
 
-    expect(signUp).toHaveBeenCalledWith({
-      email: 'a@b.co',
-      password: 'secret12',
-      options: {
-        emailRedirectTo: expect.stringMatching(/\/auth\/callback$/),
-      },
-    });
+    expect(signUp).toHaveBeenCalledOnce();
+    const signUpArgs = signUp.mock.calls[0]?.[0] as {
+      email: string;
+      password: string;
+      options: { emailRedirectTo: string };
+    };
+    expect(signUpArgs.email).toBe('a@b.co');
+    expect(signUpArgs.password).toBe('secret12');
+    expect(signUpArgs.options.emailRedirectTo).toMatch(/\/auth\/callback$/);
     expect(result).toEqual({ ok: true, session: fakeSession });
   });
 
