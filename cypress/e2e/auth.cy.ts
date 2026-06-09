@@ -1,6 +1,7 @@
 /**
- * Requires `npm run dev` with valid VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
- * (e.g. `.env.local`) so the app bundle can initialize.
+ * CI runs `npm run build` then `cypress run`; webServer serves the production bundle via
+ * `vite preview` with placeholder VITE_* env from `.github/workflows/main-protection.yml`.
+ * Locally: build first, or rely on webServer; `.env.local` works for `npm run dev` too.
  *
  * The auth token request is stubbed so the UI shows a deterministic invalid-credentials message.
  */
