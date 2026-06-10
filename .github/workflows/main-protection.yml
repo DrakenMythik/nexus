@@ -7,6 +7,10 @@ on:
 jobs:
   verify-agent-code:
     runs-on: ubuntu-latest
+    env:
+      # Placeholder values for stubbed Cypress auth tests (see cypress/e2e/auth.cy.ts).
+      VITE_SUPABASE_URL: http://127.0.0.1:54321
+      VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e2e-ci-placeholder.e2e-ci-placeholder
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
