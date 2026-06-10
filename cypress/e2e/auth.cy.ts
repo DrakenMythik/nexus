@@ -1,7 +1,8 @@
 /**
- * CI runs `npm run build` then `cypress run`; webServer serves the production bundle via
- * `vite preview` with placeholder VITE_* env from `.github/workflows/main-protection.yml`.
- * Locally: build first, or rely on webServer; `.env.local` works for `npm run dev` too.
+ * CI runs `npm run build` then `npm run test:e2e:ci`; both E2E scripts start the production
+ * bundle via `preview:e2e` (start-server-and-test + vite preview on 127.0.0.1:4173).
+ * Locally: build first, then `npm run test:e2e` for interactive Cypress with the same auto-start.
+ * `.env.local` works for `npm run dev` too.
  *
  * The auth token request is stubbed so the UI shows a deterministic invalid-credentials message.
  */

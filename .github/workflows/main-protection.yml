@@ -31,6 +31,6 @@ jobs:
 
       - name: Build the app
         run: npm run build
-        
+
       - name: Run Cypress Tests
         run: npm run test:e2e:ci
