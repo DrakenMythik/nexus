@@ -1,13 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
-import { profileQueryKeys, useUserStore } from '@/entities/user';
+import { appUserQueryKeys, useUserStore } from '@/entities/user';
 import { useSupabase } from '@/shared/api';
 
 import { clearPersistedQueryClient } from './query-persist';
 
 /**
- * Keeps Zustand session state and React Query profile cache aligned with Supabase Auth.
+ * Keeps Zustand session state and React Query app-user cache aligned with Supabase Auth.
  */
 export function AuthStateBridge() {
   const supabase = useSupabase();
@@ -26,12 +26,12 @@ export function AuthStateBridge() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         useUserStore.getState().clearUser();
-        queryClient.removeQueries({ queryKey: profileQueryKeys.all });
+        queryClient.removeQueries({ queryKey: appUserQueryKeys.all });
         clearPersistedQueryClient();
       } else {
         useUserStore.getState().setSession(session);
         void queryClient.invalidateQueries({
-          queryKey: profileQueryKeys.byUserId(session.user.id),
+          queryKey: appUserQueryKeys.byUserId(session.user.id),
         });
       }
       markInitialAuthResolved();
@@ -40,7 +40,7 @@ export function AuthStateBridge() {
     void supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         useUserStore.getState().clearUser();
-        queryClient.removeQueries({ queryKey: profileQueryKeys.all });
+        queryClient.removeQueries({ queryKey: appUserQueryKeys.all });
         clearPersistedQueryClient();
       } else {
         useUserStore.getState().setSession(session);

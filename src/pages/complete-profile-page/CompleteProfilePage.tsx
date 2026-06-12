@@ -1,16 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 import {
-  profileQueryKeys,
-  upsertProfile,
-  useProfileQuery,
+  appUserQueryKeys,
+  isAppUserOnboardingComplete,
+  updateAppUser,
+  useAppUserQuery,
   useUserStore,
+  type UserSex,
 } from '@/entities/user';
 import { useSupabase } from '@/shared/api';
 import {
@@ -29,8 +32,17 @@ import {
   Skeleton,
 } from '@/shared/ui';
 
+const USER_SEX_OPTIONS = [
+  'Male',
+  'Female',
+  'Other',
+  'Prefer Not to Say',
+] as const satisfies readonly UserSex[];
+
 const schema = z.object({
   displayName: z.string().trim().min(1, 'Enter a display name.'),
+  sex: z.enum(USER_SEX_OPTIONS, { message: 'Select an option.' }),
+  birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid date.'),
 });
 type Values = z.infer<typeof schema>;
 
@@ -39,15 +51,24 @@ export function CompleteProfilePage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const userId = useUserStore((s) => s.userId);
-  const { data: profile, isPending } = useProfileQuery();
+  const { data: appUser, isPending } = useAppUserQuery();
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { displayName: '' },
+    defaultValues: { displayName: '', sex: undefined, birthdate: '' },
     mode: 'onSubmit',
   });
 
-  const existingName = profile?.display_name?.trim();
+  useEffect(() => {
+    if (!appUser) {
+      return;
+    }
+    form.reset({
+      displayName: appUser.display_name?.trim() ?? '',
+      sex: appUser.sex ?? undefined,
+      birthdate: appUser.birthdate ?? '',
+    });
+  }, [appUser, form]);
 
   if (isPending) {
     return (
@@ -67,7 +88,7 @@ export function CompleteProfilePage() {
     );
   }
 
-  if (existingName) {
+  if (isAppUserOnboardingComplete(appUser)) {
     return (
       <Card>
         <CardHeader>
@@ -75,7 +96,7 @@ export function CompleteProfilePage() {
             Profile complete
           </h1>
           <CardDescription>
-            You already have a display name set. Continue to the dashboard.
+            Your profile details are saved. Continue to the dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -89,11 +110,13 @@ export function CompleteProfilePage() {
 
   async function onSubmit(values: Values) {
     try {
-      const updated = await upsertProfile(client, {
+      const updated = await updateAppUser(client, {
         display_name: values.displayName,
+        sex: values.sex,
+        birthdate: values.birthdate,
       });
       if (userId) {
-        queryClient.setQueryData(profileQueryKeys.byUserId(userId), updated);
+        queryClient.setQueryData(appUserQueryKeys.byUserId(userId), updated);
       }
       void navigate('/', { replace: true });
     } catch (err) {
@@ -112,7 +135,8 @@ export function CompleteProfilePage() {
           Finish setting up
         </h1>
         <CardDescription>
-          Choose how we should greet you in the app. You can change this later.
+          Choose how we greet you and add a few details so Nexus can personalize
+          your experience.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -138,6 +162,49 @@ export function CompleteProfilePage() {
                       minLength={1}
                       {...field}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="sex"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sex</FormLabel>
+                  <FormControl>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                      required
+                    >
+                      <option value="" disabled>
+                        Select…
+                      </option>
+                      {USER_SEX_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="birthdate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Birthdate</FormLabel>
+                  <FormControl>
+                    <Input type="date" required {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

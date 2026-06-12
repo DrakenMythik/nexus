@@ -1,10 +1,14 @@
-export type { Profile, UserId } from './model/types';
-export { asUserId } from './model/types';
+export type { AppUser, UserId, UserSex } from './model/types';
+export {
+  appUserGreetingName,
+  asUserId,
+  isAppUserOnboardingComplete,
+} from './model/types';
 export { useUserStore, type UserStoreState } from './model/store';
 export {
-  fetchProfile,
-  upsertProfile,
-  profileQueryKeys,
-  type UpsertProfileInput,
-} from './api/profile-queries';
-export { useProfileQuery } from './api/use-profile-query';
+  appUserQueryKeys,
+  fetchAppUser,
+  updateAppUser,
+  type UpdateAppUserInput,
+} from './api/app-user-queries';
+export { useAppUserQuery } from './api/use-app-user-query';

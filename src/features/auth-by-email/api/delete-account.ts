@@ -3,13 +3,13 @@ import type { NexusSupabaseClient } from '@/shared/api';
 import { signOut } from './sign-out';
 
 export interface DeleteAccountResult {
-  /** App profile row removed when RLS allows; auth.users removal requires service role. */
-  profileRemoved: boolean;
+  /** App user row removed when RLS allows; auth.users removal requires service role. */
+  userRowRemoved: boolean;
   signedOut: boolean;
 }
 
 /**
- * Signs out and deletes the current user's `public.profiles` row when permitted by RLS.
+ * Signs out and deletes the current user's `public.users` row when permitted by RLS.
  * Removing the Supabase Auth user record requires a server-side admin flow (Edge Function or dashboard).
  */
 export async function deleteAccount(
@@ -19,16 +19,16 @@ export async function deleteAccount(
     data: { user },
   } = await client.auth.getUser();
 
-  let profileRemoved = false;
+  let userRowRemoved = false;
 
   if (user) {
-    const { error } = await client.from('profiles').delete().eq('id', user.id);
+    const { error } = await client.from('users').delete().eq('id', user.id);
     if (!error) {
-      profileRemoved = true;
+      userRowRemoved = true;
     }
   }
 
   await signOut(client);
 
-  return { profileRemoved, signedOut: true };
+  return { userRowRemoved, signedOut: true };
 }
