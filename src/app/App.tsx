@@ -11,7 +11,7 @@ import {
 import { ThemeToggle } from '@/shared/ui';
 
 import { AuthSessionGate } from './AuthSessionGate';
-import { RequireProfileDisplayName } from './RequireProfileDisplayName';
+import { RequireCompleteUserProfile } from './RequireCompleteUserProfile';
 
 export function App() {
   return (
@@ -34,7 +34,7 @@ export function App() {
                 path="/complete-profile"
                 element={<CompleteProfilePage />}
               />
-              <Route element={<RequireProfileDisplayName />}>
+              <Route element={<RequireCompleteUserProfile />}>
                 <Route path="/" element={<DashboardPage />} />
               </Route>
             </Route>

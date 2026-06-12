@@ -2,10 +2,10 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import type { Query } from '@tanstack/react-query';
 import type { PersistQueryClientOptions } from '@tanstack/react-query-persist-client';
 
-import { profileQueryKeys } from '@/entities/user';
+import { appUserQueryKeys } from '@/entities/user';
 
 const PERSIST_STORAGE_KEY = 'nexus-rq-v1';
-const PROFILE_ROOT = profileQueryKeys.all[0];
+const APP_USER_ROOT = appUserQueryKeys.all[0];
 
 let persisterSingleton: ReturnType<
   typeof createSyncStoragePersister
@@ -30,8 +30,8 @@ export function clearPersistedQueryClient(): void {
   void getQueryPersister()?.removeClient();
 }
 
-function shouldDehydrateProfileQuery(query: Query): boolean {
-  return query.queryKey[0] === PROFILE_ROOT;
+function shouldDehydrateAppUserQuery(query: Query): boolean {
+  return query.queryKey[0] === APP_USER_ROOT;
 }
 
 const PERSIST_MAX_AGE_MS = 86_400_000; // 24 hours
@@ -48,7 +48,7 @@ export function buildPersistQueryOptions(): Omit<
     persister,
     maxAge: PERSIST_MAX_AGE_MS,
     dehydrateOptions: {
-      shouldDehydrateQuery: shouldDehydrateProfileQuery,
+      shouldDehydrateQuery: shouldDehydrateAppUserQuery,
     },
   };
 }

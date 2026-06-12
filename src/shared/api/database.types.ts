@@ -1,401 +1,484 @@
-/**
- * Supabase database typings for the browser client.
- * Kept in sync with SQL migrations under supabase/migrations/.
- */
-export type WorkoutSessionStatus = 'in_progress' | 'completed' | 'skipped';
-
-export type ProgramBlockType =
-  | 'warmup'
-  | 'workout'
-  | 'superset'
-  | 'interval_circuit'
-  | 'cooldown';
-
-export type ExercisePrescriptionMode =
-  | 'sets_reps'
-  | 'time_interval'
-  | 'percentage_1rm';
-
-export type ExerciseProtocol =
-  | 'double_progression'
-  | 'top_set_backoff'
-  | 'percentage_block'
-  | 'interval_progression'
-  | 'circuit';
-
-export type ProgramLevel = 'beginner' | 'intermediate' | 'advanced';
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      profiles: {
+      daily_biometrics: {
         Row: {
-          id: string;
-          display_name: string | null;
-          timezone: string;
-          created_at: string;
-          updated_at: string;
-        };
+          calories: number | null
+          id: string
+          log_date: string
+          protein_g: number | null
+          readiness_score: number | null
+          sleep_hours: number | null
+          steps: number | null
+          user_id: string
+        }
         Insert: {
-          id: string;
-          display_name?: string | null;
-          timezone?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
+          calories?: number | null
+          id?: string
+          log_date: string
+          protein_g?: number | null
+          readiness_score?: number | null
+          sleep_hours?: number | null
+          steps?: number | null
+          user_id: string
+        }
         Update: {
-          display_name?: string | null;
-          timezone?: string;
-          updated_at?: string;
-        };
-      };
-      workout_sessions: {
+          calories?: number | null
+          id?: string
+          log_date?: string
+          protein_g?: number | null
+          readiness_score?: number | null
+          sleep_hours?: number | null
+          steps?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_biometrics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercises: {
         Row: {
-          id: string;
-          user_id: string;
-          program_day_id: string | null;
-          status: WorkoutSessionStatus | null;
-          session_date: string | null;
-          started_at: string;
-          ended_at: string | null;
-          notes: string | null;
-          created_at: string;
-          updated_at: string;
-        };
+          id: string
+          instructions: string | null
+          muscle_group: string
+          name: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          program_day_id?: string | null;
-          status?: WorkoutSessionStatus | null;
-          session_date?: string | null;
-          started_at?: string;
-          ended_at?: string | null;
-          notes?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
+          id?: string
+          instructions?: string | null
+          muscle_group: string
+          name: string
+        }
         Update: {
-          program_day_id?: string | null;
-          status?: WorkoutSessionStatus | null;
-          session_date?: string | null;
-          started_at?: string;
-          ended_at?: string | null;
-          notes?: string | null;
-          updated_at?: string;
-        };
-      };
-      health_metrics: {
-        Row: {
-          id: string;
-          user_id: string;
-          recorded_at: string;
-          weight_kg: number | null;
-          sleep_hours: number | null;
-          notes: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          recorded_at?: string;
-          weight_kg?: number | null;
-          sleep_hours?: number | null;
-          notes?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          recorded_at?: string;
-          weight_kg?: number | null;
-          sleep_hours?: number | null;
-          notes?: string | null;
-          updated_at?: string;
-        };
-      };
+          id?: string
+          instructions?: string | null
+          muscle_group?: string
+          name?: string
+        }
+        Relationships: []
+      }
       programs: {
         Row: {
-          id: string;
-          slug: string;
-          name: string;
-          description: string | null;
-          days_per_week: number;
-          is_published: boolean;
-          created_at: string;
-          tags: string[];
-          source_folder: string | null;
-          level: ProgramLevel | null;
-        };
+          days_per_week: number
+          description: string | null
+          id: string
+          level: Database["public"]["Enums"]["program_level"] | null
+          name: string
+          specialty: Database["public"]["Enums"]["program_specialty"] | null
+          weeks_duration: number
+        }
         Insert: {
-          id?: string;
-          slug: string;
-          name: string;
-          description?: string | null;
-          days_per_week: number;
-          is_published?: boolean;
-          created_at?: string;
-          tags?: string[];
-          source_folder?: string | null;
-          level?: ProgramLevel | null;
-        };
+          days_per_week: number
+          description?: string | null
+          id?: string
+          level?: Database["public"]["Enums"]["program_level"] | null
+          name: string
+          specialty?: Database["public"]["Enums"]["program_specialty"] | null
+          weeks_duration: number
+        }
         Update: {
-          slug?: string;
-          name?: string;
-          description?: string | null;
-          days_per_week?: number;
-          is_published?: boolean;
-          tags?: string[];
-          source_folder?: string | null;
-          level?: ProgramLevel | null;
-        };
-      };
-      program_days: {
-        Row: {
-          id: string;
-          program_id: string;
-          slug: string;
-          day_index: number;
-          name: string;
-          sort_order: number;
-          focus: string | null;
-        };
-        Insert: {
-          id?: string;
-          program_id: string;
-          slug: string;
-          day_index: number;
-          name: string;
-          sort_order: number;
-          focus?: string | null;
-        };
-        Update: {
-          program_id?: string;
-          slug?: string;
-          day_index?: number;
-          name?: string;
-          sort_order?: number;
-          focus?: string | null;
-        };
-      };
-      program_blocks: {
-        Row: {
-          id: string;
-          program_day_id: string;
-          slug: string;
-          block_type: ProgramBlockType;
-          name: string;
-          sort_order: number;
-          instructions: string | null;
-          round_count: number | null;
-        };
-        Insert: {
-          id?: string;
-          program_day_id: string;
-          slug: string;
-          block_type?: ProgramBlockType;
-          name: string;
-          sort_order: number;
-          instructions?: string | null;
-          round_count?: number | null;
-        };
-        Update: {
-          program_day_id?: string;
-          slug?: string;
-          block_type?: ProgramBlockType;
-          name?: string;
-          sort_order?: number;
-          instructions?: string | null;
-          round_count?: number | null;
-        };
-      };
-      program_exercises: {
-        Row: {
-          id: string;
-          program_day_id: string;
-          program_block_id: string | null;
-          slug: string;
-          name: string;
-          sort_order: number;
-          prescription_mode: ExercisePrescriptionMode;
-          protocol: ExerciseProtocol | null;
-          tempo: string | null;
-          superset_letter: string | null;
-          percentage_start: number | null;
-          percentage_increment: number | null;
-          work_seconds: number | null;
-          target_sets: number;
-          target_reps: string;
-          rest_seconds: number | null;
-          notes: string | null;
-        };
-        Insert: {
-          id?: string;
-          program_day_id: string;
-          program_block_id?: string | null;
-          slug: string;
-          name: string;
-          sort_order: number;
-          prescription_mode?: ExercisePrescriptionMode;
-          protocol?: ExerciseProtocol | null;
-          tempo?: string | null;
-          superset_letter?: string | null;
-          percentage_start?: number | null;
-          percentage_increment?: number | null;
-          work_seconds?: number | null;
-          target_sets: number;
-          target_reps: string;
-          rest_seconds?: number | null;
-          notes?: string | null;
-        };
-        Update: {
-          program_day_id?: string;
-          program_block_id?: string | null;
-          slug?: string;
-          name?: string;
-          sort_order?: number;
-          prescription_mode?: ExercisePrescriptionMode;
-          protocol?: ExerciseProtocol | null;
-          tempo?: string | null;
-          superset_letter?: string | null;
-          percentage_start?: number | null;
-          percentage_increment?: number | null;
-          work_seconds?: number | null;
-          target_sets?: number;
-          target_reps?: string;
-          rest_seconds?: number | null;
-          notes?: string | null;
-        };
-      };
-      program_exercise_sets: {
-        Row: {
-          id: string;
-          program_exercise_id: string;
-          set_number: number;
-          target_reps: string | null;
-          rest_seconds: number | null;
-          work_seconds: number | null;
-          load_note: string | null;
-        };
-        Insert: {
-          id?: string;
-          program_exercise_id: string;
-          set_number: number;
-          target_reps?: string | null;
-          rest_seconds?: number | null;
-          work_seconds?: number | null;
-          load_note?: string | null;
-        };
-        Update: {
-          program_exercise_id?: string;
-          set_number?: number;
-          target_reps?: string | null;
-          rest_seconds?: number | null;
-          work_seconds?: number | null;
-          load_note?: string | null;
-        };
-      };
-      program_exercise_alternates: {
-        Row: {
-          id: string;
-          program_exercise_id: string;
-          name: string;
-          sort_order: number;
-        };
-        Insert: {
-          id?: string;
-          program_exercise_id: string;
-          name: string;
-          sort_order: number;
-        };
-        Update: {
-          program_exercise_id?: string;
-          name?: string;
-          sort_order?: number;
-        };
-      };
-      user_program_enrollments: {
-        Row: {
-          id: string;
-          user_id: string;
-          program_id: string;
-          is_active: boolean;
-          started_at: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          program_id: string;
-          is_active?: boolean;
-          started_at?: string;
-          created_at?: string;
-        };
-        Update: {
-          program_id?: string;
-          is_active?: boolean;
-          started_at?: string;
-        };
-      };
-      readiness_checks: {
-        Row: {
-          id: string;
-          user_id: string;
-          check_date: string;
-          readiness: number;
-          note: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          check_date: string;
-          readiness: number;
-          note?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          check_date?: string;
-          readiness?: number;
-          note?: string | null;
-        };
-      };
+          days_per_week?: number
+          description?: string | null
+          id?: string
+          level?: Database["public"]["Enums"]["program_level"] | null
+          name?: string
+          specialty?: Database["public"]["Enums"]["program_specialty"] | null
+          weeks_duration?: number
+        }
+        Relationships: []
+      }
       set_logs: {
         Row: {
-          id: string;
-          user_id: string;
-          workout_session_id: string;
-          program_exercise_id: string | null;
-          exercise_name: string;
-          set_index: number;
-          target_reps: string | null;
-          weight_kg: number | null;
-          reps: number | null;
-          is_completed: boolean;
-          created_at: string;
-        };
+          exercise_id: string
+          id: string
+          reps_completed: number
+          rpe: number | null
+          set_number: number
+          weight: number
+          workout_log_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          workout_session_id: string;
-          program_exercise_id?: string | null;
-          exercise_name: string;
-          set_index: number;
-          target_reps?: string | null;
-          weight_kg?: number | null;
-          reps?: number | null;
-          is_completed?: boolean;
-          created_at?: string;
-        };
+          exercise_id: string
+          id?: string
+          reps_completed: number
+          rpe?: number | null
+          set_number: number
+          weight: number
+          workout_log_id: string
+        }
         Update: {
-          program_exercise_id?: string | null;
-          exercise_name?: string;
-          set_index?: number;
-          target_reps?: string | null;
-          weight_kg?: number | null;
-          reps?: number | null;
-          is_completed?: boolean;
-        };
-      };
-    };
-  };
-};
+          exercise_id?: string
+          id?: string
+          reps_completed?: number
+          rpe?: number | null
+          set_number?: number
+          weight?: number
+          workout_log_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "set_logs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "set_logs_workout_log_id_fkey"
+            columns: ["workout_log_id"]
+            isOneToOne: false
+            referencedRelation: "workout_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          birthdate: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string
+          id: string
+          sex: Database["public"]["Enums"]["user_sex"] | null
+        }
+        Insert: {
+          birthdate?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+          id: string
+          sex?: Database["public"]["Enums"]["user_sex"] | null
+        }
+        Update: {
+          birthdate?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+          id?: string
+          sex?: Database["public"]["Enums"]["user_sex"] | null
+        }
+        Relationships: []
+      }
+      workout_exercises: {
+        Row: {
+          block_type: Database["public"]["Enums"]["block_type"]
+          exercise_id: string
+          id: string
+          order_index: number
+          rest_seconds: number | null
+          superset_group: string | null
+          target_reps_max: number | null
+          target_reps_min: number | null
+          target_sets: number
+          target_time_seconds: number | null
+          tempo: string | null
+          workout_id: string
+        }
+        Insert: {
+          block_type: Database["public"]["Enums"]["block_type"]
+          exercise_id: string
+          id?: string
+          order_index: number
+          rest_seconds?: number | null
+          superset_group?: string | null
+          target_reps_max?: number | null
+          target_reps_min?: number | null
+          target_sets: number
+          target_time_seconds?: number | null
+          tempo?: string | null
+          workout_id: string
+        }
+        Update: {
+          block_type?: Database["public"]["Enums"]["block_type"]
+          exercise_id?: string
+          id?: string
+          order_index?: number
+          rest_seconds?: number | null
+          superset_group?: string | null
+          target_reps_max?: number | null
+          target_reps_min?: number | null
+          target_sets?: number
+          target_time_seconds?: number | null
+          tempo?: string | null
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_logs: {
+        Row: {
+          ended_at: string | null
+          id: string
+          started_at: string
+          user_id: string
+          workout_id: string | null
+        }
+        Insert: {
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          user_id: string
+          workout_id?: string | null
+        }
+        Update: {
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          user_id?: string
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_logs_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          day_number: number
+          description: string | null
+          id: string
+          name: string
+          program_id: string
+          week_number: number
+        }
+        Insert: {
+          day_number: number
+          description?: string | null
+          id?: string
+          name: string
+          program_id: string
+          week_number: number
+        }
+        Update: {
+          day_number?: number
+          description?: string | null
+          id?: string
+          name?: string
+          program_id?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      block_type: "Warmup" | "Main" | "Cooldown"
+      program_level: "Beginner" | "Intermediate" | "Advanced"
+      program_specialty: "Hypertrophy" | "Strength" | "Weight Loss"
+      user_sex: "Male" | "Female" | "Other" | "Prefer Not to Say"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {
+      block_type: ["Warmup", "Main", "Cooldown"],
+      program_level: ["Beginner", "Intermediate", "Advanced"],
+      program_specialty: ["Hypertrophy", "Strength", "Weight Loss"],
+      user_sex: ["Male", "Female", "Other", "Prefer Not to Say"],
+    },
+  },
+} as const
+

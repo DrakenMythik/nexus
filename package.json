@@ -58,7 +58,7 @@
     "postcss": "^8.5.14",
     "shadcn": "^4.7.0",
     "start-server-and-test": "^2.1.5",
-    "supabase": "^2.104.0",
+    "supabase": "^2.106.0",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.1",
     "typescript-eslint": "^8.59.2",

@@ -21,7 +21,7 @@ To preserve the psychological value of the streak, a Smart Rest is never just a 
 
 ## Key metrics
 
-- **Adherence north-star** — ≥80% of *prescribed* sessions completed over 4 consecutive weeks, where a readiness-prescribed rest/deload counts toward adherence (the lagging success measure).
+- **Adherence Target** — ≥80% of *prescribed* sessions completed over 4 consecutive weeks, where a readiness-prescribed rest/deload counts toward adherence (the lagging success measure).
 - **Daily-open rate** — does the user open the app daily; the leading signal that the feedback loop is working.
 - **Vibe-check completion rate** — share of days the 1–5 readiness check-in is logged; the input the consistency score depends on.
 - **Rebound Adherence** — the completion rate of the scheduled workout immediately *following* a smart rest. This is the true test of the thesis: if the app gives them grace on Tuesday, do they actually show up and lift on Wednesday?

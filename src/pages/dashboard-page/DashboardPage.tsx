@@ -1,12 +1,12 @@
-import { useProfileQuery, useUserStore } from '@/entities/user';
+import { appUserGreetingName, useAppUserQuery, useUserStore } from '@/entities/user';
 
 export function DashboardPage() {
   const userId = useUserStore((s) => s.userId);
   const authHydrated = useUserStore((s) => s.authHydrated);
-  const { data, isPending } = useProfileQuery();
+  const { data, isPending } = useAppUserQuery();
 
   const readyForName = authHydrated && Boolean(userId) && !isPending;
-  const name = data?.display_name?.trim();
+  const name = appUserGreetingName(data);
 
   return (
     <div className="space-y-2">
