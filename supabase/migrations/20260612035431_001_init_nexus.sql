@@ -49,9 +49,13 @@ CREATE TABLE daily_biometrics (
     steps INTEGER,
     calories INTEGER,
     protein_g INTEGER,
+    body_weight NUMERIC CHECK (body_weight IS NULL OR body_weight > 0),
     readiness_score INTEGER CHECK (readiness_score >= 1 AND readiness_score <= 100),
     UNIQUE(user_id, log_date)
 );
+
+COMMENT ON COLUMN public.daily_biometrics.body_weight IS
+  'Body weight in kilograms (canonical storage; UI may display/log in kg or lb).';
 
 -- 4. THE LIBRARY (Templates)
 CREATE TABLE programs (
