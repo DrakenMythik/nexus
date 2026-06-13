@@ -11,8 +11,8 @@
 
 Nexus is a mobile-first, offline-first PWA for lifting, sleep, nutrition, and
 habit tracking. Authentication + RLS data isolation (Epic 1 / Feature 1.1) is
-**already shipped**. This document sequences the remaining vision into a tight
-MVP floor and a phased path to the larger backlog.
+**already shipped**. This document sequences the remaining vision into a
+Phase 1 + Phase 2 test MVP and a validation-gated path to the larger backlog.
 
 The roadmap is organized around **one bet** and **one signature mechanic**:
 
@@ -55,18 +55,19 @@ decision, not a technical blocker.
 
 **North-star (MVP):** a **consistency** metric, not a feature count.
 
-- **MVP success:** the primary user completes **≥80% of prescribed sessions for
-  4 consecutive weeks**, where a readiness-prescribed rest/deload counts toward
-  adherence.
+- **MVP test success:** the primary user completes **≥80% of prescribed sessions
+  for 4 consecutive weeks**, where a readiness-prescribed rest/deload counts
+  toward adherence. Phase 3 work should wait until this 4-week test completes.
 - **Leading indicators:** daily-open rate; vibe-check completion rate;
   proportion of "smart rest" days correctly credited (not penalized).
 - **Anti-metric:** raw session count or streak length in isolation — explicitly
   *not* a success measure, because it rewards over-training and punishes
   recovery.
 
-## 5. MVP scope (v1 floor — "The Adherence Loop + Whole-System Lite")
+## 5. MVP scope (4-week test — "The Adherence Loop + Whole-System Lite")
 
-The smallest version that proves the core bet and that the user opens daily.
+The version that is rich enough to test the core bet for 4 weeks without
+building the full product vision.
 
 | ID | Capability | Why it's in the floor |
 |----|-----------|----------------------|
@@ -77,32 +78,35 @@ The smallest version that proves the core bet and that the user opens daily.
 | MVP-5 | **Readiness-adjusted consistency feedback** (streak/progress that credits smart rest) | The signature mechanic; the reason it keeps you consistent |
 | MVP-6 | **Smart Rest micro-commitment** | Preserves the psychology of earning the adherence point; smart rest is grace, not a free pass |
 | MVP-7 | **Static knowledge nudges** (curated science notes, no LLM) | Delivers the "knowledge" pillar cheaply; keeps v1 from feeling like just a logger |
+| MVP-8 | **Biometric trends and interpretation** | Makes Whole-System Lite useful beyond capture during the 4-week test |
+| MVP-9 | **Flexible scheduling and on-the-fly adjustments** | Handles the life-derailment problem without forcing the user to abandon the plan |
+| MVP-10 | **Linear progression automation** | Makes "today's session" feel alive enough to test whether Nexus can replace a static logger |
 
 **MVP deliberately excludes:** health-OS telemetry, HRV/sleep auto-import,
 biometrics-derived readiness scoring, WRS calculator, LLM-generated notes,
-progression automation, exercise substitution, and gamification depth (bio-core
-visualization). These are phased below.
+exercise substitution, and gamification depth (bio-core visualization). These
+are validation-gated until after the 4-week test.
 
 ## 6. Phased roadmap (path to the vision)
 
 Maps the existing 8-epic backlog onto the consistency-first sequence.
 
-- **Phase 1 — MVP / The Adherence Loop** (this doc, §5)
+- **Phase 1 — Test MVP foundation / The Adherence Loop** (this doc, §5)
   Touches Epic 2 (program select, light), Epic 3 (scheduling, light), Epic 6
   (guided player), Epic 4.2 (manual vibe-check and daily biometrics), Epic 5
   (readiness-adjusted scoring, light), Epic 8 (consistency feedback, light).
 
-- **Phase 2 — Whole-System Lite**
+- **Phase 2 — Test MVP depth / Whole-System Lite** (this doc, §5)
   Linear progression automation (Epic 7.2), biometric trends and interpretation,
   deeper flexible scheduling / on-the-fly adjustments (Epic 3 full). Makes the
   "whole system" view useful beyond capture.
 
-- **Phase 3 — Intelligent Auto-Regulation**
+- **Phase 3 — Intelligent Auto-Regulation** (after the 4-week MVP test)
   Health-OS integrations + background sync (Epic 4.1), WRS calculator +
   auto-regulation logic + LLM science notes (Epic 5 full). Upgrades the manual
   vibe-check into automatic, intelligent readiness.
 
-- **Phase 4 — Behavioral Depth**
+- **Phase 4 — Behavioral Depth** (after the 4-week MVP test)
   Bio-Sync engine, program-aware streak depth, bio-core visualization
   (Epic 8.1 full), relational exercise library + smart substitution (Epic 7.1).
 
@@ -110,7 +114,8 @@ Maps the existing 8-epic backlog onto the consistency-first sequence.
 
 **Deferred for later (in the vision, not now):** automatic health telemetry,
 biometrics-derived readiness scoring, LLM-driven coaching/notes, progression
-automation, smart exercise substitution, gamification visualization.
+depth beyond linear progression, smart exercise substitution, gamification
+visualization.
 
 **Outside this product's identity (Icebox):**
 - AI-generated custom programming (Feature 9.2)
@@ -134,9 +139,11 @@ bet is proven.
    readiness or adherence in v1.
 6. Smart Rest requires a micro-commitment so the adherence point still feels
    earned.
-7. MVP = lean adherence loop **+** Whole-System Lite **+** static knowledge
-   nudges.
-8. Success = consistency north-star (≥80% adherence, 4 weeks), not feature count.
+7. Test MVP = Phase 1 **+** full Phase 2: adherence loop, Whole-System Lite,
+   flexible scheduling, and linear progression automation.
+8. Phase 3 and Phase 4 wait until the 4-week MVP test validates the consistency
+   bet.
+9. Success = consistency north-star (≥80% adherence, 4 weeks), not feature count.
 
 ## 9. Dependencies & assumptions
 
@@ -164,12 +171,15 @@ bet is proven.
   Smart Rest micro-commitment are credited. Needs a concrete rule before Phase
   1 coding.
 - **OQ-4:** Source/curation of static knowledge nudges (MVP-7).
+- **OQ-5:** What is the minimum useful linear progression rule for MVP-10?
+- **OQ-6:** What scheduling adjustments count as "flexible" for the 4-week test
+  without becoming a full calendar system?
 
 ## 11. Next steps
 
-1. Run `/lfg` or `ce-plan` against this document to produce a Phase 1 (MVP)
-   implementation plan, starting with OQ-1–OQ-4 resolution.
+1. Run `/lfg` or `ce-plan` against this document to produce a Phase 1 + Phase 2
+   test MVP implementation plan, starting with OQ-1–OQ-6 resolution.
 2. Translate phases into GitHub issues per the compound engineering pipeline (see
    [`AGENTS.md`](../../AGENTS.md)).
-3. For Phase 1 data needs, include a Schema/RLS implementation unit in the plan
-   before any `supabase/migrations/` work.
+3. For Phase 1 + Phase 2 data needs, include a Schema/RLS implementation unit
+   in the plan before any `supabase/migrations/` work.
