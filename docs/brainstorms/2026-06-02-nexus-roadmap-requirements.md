@@ -72,7 +72,7 @@ The smallest version that proves the core bet and that the user opens daily.
 |----|-----------|----------------------|
 | MVP-1 | **Preset program → "today's session"** served up automatically | Kills decision fatigue; gives the plan to adhere to |
 | MVP-2 | **Guided, offline-first workout execution** (step-through, set/rep logging) | Frictionless capture; offline resilience is a core constraint |
-| MVP-3 | **Manual body check-in** — a single 1–5 readiness number | Cheap, single-tap readiness signal the consistency score depends on — no health integration required |
+| MVP-3 | **Manual body check-in** — a single 1–10 readiness number | Cheap, single-tap readiness signal the consistency score depends on — no health integration required |
 | MVP-4 | **Readiness-adjusted consistency feedback** (streak/progress that credits smart rest) | The signature mechanic; the reason it keeps you consistent |
 | MVP-5 | **Static knowledge nudges** (curated science notes, no LLM) | Delivers the "knowledge" pillar cheaply; keeps v1 from feeling like just a logger |
 
@@ -138,14 +138,15 @@ bet is proven.
 - **Dependency (shipped):** auth + RLS per-user isolation (Feature 1.1).
 - **Constraint:** offline-first is non-negotiable; any phase that degrades
   offline behavior is a regression (per `AGENTS.md`).
-- **Blueprint gate:** any new Supabase schema/RLS for Phases 1–4 must go through
-  the blueprint phase before migrations (per `AGENTS.md`).
+- **Schema gate:** any new Supabase schema/RLS must appear as an
+  explicit Schema/RLS unit in the LFG-produced plan before migrations (per
+  [`AGENTS.md`](../../AGENTS.md) and [`.cursor/rules/05-lfg-guardrails.mdc`](../../.cursor/rules/05-lfg-guardrails.mdc)).
 
 ## 10. Open questions (for planning)
 
 - **OQ-1:** What is the seed preset program for MVP-1 (one opinionated default
   vs. a small library)? Smallest answer: a single default program.
-- **OQ-2 (resolved):** The body check-in is a **single 1–5 readiness number** —
+- **OQ-2 (resolved):** The body check-in is a **single 1–10 readiness number** —
   one tap, lowest possible friction. Multi-dimension input (sleep, soreness,
   energy) is deferred to Phase 2's whole-system expansion.
 - **OQ-3:** Exact readiness-adjusted scoring formula — how a prescribed rest is
@@ -154,9 +155,9 @@ bet is proven.
 
 ## 11. Next steps
 
-1. Run `ce-plan` against this document to produce a Phase 1 (MVP) implementation
-   plan, starting with OQ-1–OQ-4 resolution.
-2. Translate phases into GitHub Epics/Features per the GNAP pipeline (see
-   `docs/handoffs/260507nexus-factory-floor-handoff.md`).
-3. For Phase 1 data needs, design schema in the blueprint phase before any
-   `supabase/migrations/` work.
+1. Run `/lfg` or `ce-plan` against this document to produce a Phase 1 (MVP)
+   implementation plan, starting with OQ-1–OQ-4 resolution.
+2. Translate phases into GitHub issues per the compound engineering pipeline (see
+   [`AGENTS.md`](../../AGENTS.md)).
+3. For Phase 1 data needs, include a Schema/RLS implementation unit in the plan
+   before any `supabase/migrations/` work.

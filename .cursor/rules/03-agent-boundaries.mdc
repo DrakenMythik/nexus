@@ -3,11 +3,35 @@ description: Security constraints, anti-hallucination, and execution boundaries 
 globs: *
 alwaysApply: true
 ---
-# Agent Execution Boundaries
-- **Zero Placeholder Policy**: Never leave incomplete code or `// TODO` stubs. Deliver fully functional units of work.
-- **Anti-Hallucination**: Verify the existence of npm packages via the terminal before suggesting imports.
-- **Interface-First Development**: Define TypeScript interfaces and types before writing implementation code.
-- **Security First**: Do not hardcode API keys. API keys must remain in `.env` (which is gitignored) and be accessed via `import.meta.env` in Vite.
-- **Supabase anon default-deny**: New `public` tables must not retain default **`anon`** privileges; **`REVOKE`** from **`anon`** (at least `SELECT`) after grants unless anonymous access is explicitly requested.
-- **Inspect Before Acting**: Do not assume scripts (`npm run build`, `npm run test:unit`, etc.) or planned directories (`src/`, `supabase/`, `docs/`) exist. Verify the repo state before invoking them or referencing them in code.
-- **Git Safety**: Never run destructive or irreversible git operations (force push, hard reset, history rewrites) and never commit unless the user explicitly requests it.
+# Agent Boundaries
+
+## Always apply
+
+- **Zero Placeholder Policy:** Never leave incomplete code or `// TODO` stubs. Deliver fully functional units of work.
+- **Anti-Hallucination:** Verify the existence of npm packages via the terminal before suggesting imports.
+- **Interface-First Development:** Define TypeScript interfaces and types before writing implementation code.
+- **Security First:** Do not hardcode API keys. API keys must remain in `.env` (gitignored) and be accessed via `import.meta.env` in Vite.
+- **Supabase anon default-deny:** New `public` tables must not retain default **`anon`** privileges; **`REVOKE`** from **`anon`** (at least `SELECT`) after grants unless anonymous access is explicitly requested.
+- **Inspect Before Acting:** Do not assume scripts (`npm run build`, `npm run test:unit`, etc.) or planned directories (`src/`, `supabase/`, `docs/`) exist. Verify the repo state before invoking them or referencing them in code.
+- **Dependency Management:** Install new npm packages only if they are lightweight utilities (e.g. `lucide-react`, `date-fns`). Never install competing heavy frameworks (e.g. another state management library over Zustand).
+- **Destructive Actions:** Never force-push (`git push -f`), hard-reset, rebase, or delete operational root configurations unless explicitly instructed.
+
+## During `/lfg` or explicit autonomous runs
+
+Applies when the user invokes `/lfg`, an LFG pipeline run, or AGENTS.md autonomous execution. See [`.cursor/rules/05-lfg-guardrails.mdc`](.cursor/rules/05-lfg-guardrails.mdc) for the full checklist.
+
+- **Branch creation:** Create a feature branch from `main` before implementation (`git pull origin main` first). Never work on `main` for feature code.
+- **Branch naming:**
+  - Issue-linked: `{type}/{issue}-{slug}` (pattern: type, issue number, kebab slug)
+  - No issue: `{type}/{slug}`
+  - `type` from plan frontmatter (`feat`, `fix`, `chore`, `refactor`, `test`, `docs`, `perf`)
+  - `slug`: lowercase kebab-case, max 40 characters, derived from plan title
+  - Forbidden: `main`, opaque auto-generated names, mid-run branch switches
+- **No branch prompts:** Do not ask to continue on the current branch or create a new one — create the branch per the rules above.
+- **Commit freedom:** Auto-commit per FSD layer or logical segment; use Conventional Commits.
+- **Push and PR:** Push the branch and open a PR at ship; include `Closes #N` when the plan has `issue: N`.
+
+## Outside LFG
+
+- **Git safety:** No destructive git operations; no commit unless the user explicitly requests it.
+- **Branching:** Do not checkout or create a new branch unless the user explicitly requests it.
