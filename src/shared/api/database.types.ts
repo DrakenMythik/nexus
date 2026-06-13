@@ -34,6 +34,7 @@ export type Database = {
     Tables: {
       daily_biometrics: {
         Row: {
+          body_weight: number | null
           calories: number | null
           id: string
           log_date: string
@@ -44,6 +45,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          body_weight?: number | null
           calories?: number | null
           id?: string
           log_date: string
@@ -54,6 +56,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          body_weight?: number | null
           calories?: number | null
           id?: string
           log_date?: string
