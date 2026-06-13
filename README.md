@@ -21,7 +21,7 @@ To optimize for Cursor AI context and maintain a clean separation of concerns, t
 ```text
 nexus/
 ├── .cursor/rules/          # Global AI instructions and agent boundaries for Cursor
-├── .github/                # GitHub Actions workflows and issue templates
+├── .github/                # GitHub Actions workflows
 ├── docs/                   # Deep-dive documentation (architecture, database schema context)
 ├── supabase/               # Database schema, migrations, seed data, and config
 ├── src/                    # Main application code (Frontend)

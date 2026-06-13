@@ -42,7 +42,7 @@ Nexus is a **mobile-first PWA** for lifting, sleep, nutrition, and habits. Offli
 ## Product-specific cautions
 
 - **Offline-first:** avoid UX that hard-requires network for core journaling flows without messaging or graceful degradation.
-- **Secrets:** never embed Supabase keys or tokens in UI code; use **`import.meta.env`** per Vite (see `.cursor/rules/03-agent-boundaries.mdc`).
+- **Secrets:** never embed Supabase keys or tokens in UI code; use **`import.meta.env`** per Vite (see [`.cursor/rules/03-agent-boundaries.mdc`](.cursor/rules/03-agent-boundaries.mdc)).
 - **Auth-sensitive surfaces:** avoid leaking PII in logs, error copy, or analytics hooks.
 
 ## Completeness

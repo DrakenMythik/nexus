@@ -1,0 +1,73 @@
+---
+description: Pre-flight, execution, and post-ship checklists for Nexus LFG pipeline runs
+globs: *
+alwaysApply: false
+---
+# LFG Guardrails
+
+Apply this rule when the user invokes `/lfg`, when running the compound `lfg` skill, or when AGENTS.md directs an autonomous pipeline run.
+
+## Pre-flight
+
+1. Read [`STRATEGY.md`](STRATEGY.md) — confirm the work does not violate "Not working on".
+2. If args reference `issue #N`, run `gh issue view N` for context and DoD cross-check. Issue body is input only; the plan file is execution authority.
+3. If args reference a brainstorm or requirements doc, read it before planning.
+4. Verify [`package.json`](package.json) scripts exist before invoking them.
+5. Ensure a clean base: `git pull origin main` (or the repo default branch) before creating the feature branch.
+
+## Branch setup (override ce-work prompts)
+
+Do not ask "continue on this branch or create new?" During LFG:
+
+1. Resolve branch name from plan frontmatter `branch:` if set.
+2. Otherwise derive: `{type}/{issue}-{slug}` or `{type}/{slug}` per [`.cursor/rules/03-agent-boundaries.mdc`](.cursor/rules/03-agent-boundaries.mdc).
+3. Write `branch:` back to plan frontmatter once (only metadata mutation allowed during LFG).
+4. `git checkout -b <branch>` from updated `main`.
+
+If already on a correctly named feature branch for this plan, continue without switching.
+
+## Implementation (ce-work phase)
+
+- Execute plan Implementation Units in order; preserve U-IDs in commit scope where practical.
+- Do not edit plan body during execution (except one-time `branch:` / `issue:` frontmatter backfill).
+- Run `npm run lint` after altering components; fix errors before proceeding.
+- Add `npm run test:unit` when touching tested behavior; `npm run db:lint` when writing migrations.
+
+## Supabase migration gate
+
+Before `supabase migration new` or editing `supabase/migrations/`:
+
+- The active plan MUST include an explicit Schema/RLS implementation unit (tables, RLS, grants posture).
+- Follow anon default-deny in [`.cursor/rules/03-agent-boundaries.mdc`](.cursor/rules/03-agent-boundaries.mdc).
+- Run `npm run db:lint` before PR.
+
+## Pre-ship verification
+
+Must pass before push and opening the pull request:
+
+| Check | When |
+|-------|------|
+| `npm run lint` | Always |
+| `npm run lint:ctx` | Always |
+| `npm run build` | Always |
+| `npm run test:e2e:ci` | User interface, routing, or Cypress-relevant changes |
+| `npm run db:lint` | Migration or schema changes |
+
+LFG runs `ce-code-review mode:agent plan:<plan-path>`, applies mechanical fixes, then `ce-commit-push-pr` and CI watch (up to 3 fix iterations).
+
+## Post-LFG
+
+1. Flip plan frontmatter `status` from `active` to `completed`.
+2. If `issue: N` is set, comment on the issue with the PR link via `gh issue comment`.
+3. Output a summary of built layers and file paths for human PR review.
+
+## Escalation (pause LFG)
+
+Stop and ask the human only for:
+
+- STRATEGY scope conflict
+- Missing `.env` / credentials
+- CI unresolvable after 3 iterations (document in PR body, then exit)
+- Foundational product-logic scope change not covered by the plan
+
+Everything else: self-correct within the plan.

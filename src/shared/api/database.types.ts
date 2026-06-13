@@ -28,7 +28,9 @@ export type Database = {
     Enums: {
       [_ in never]: never
     }
-    CompositeTypes: Record<string, never>
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -41,7 +43,9 @@ export type Database = {
           protein_g: number | null
           readiness_score: number | null
           sleep_hours: number | null
+          status: Database["public"]["Enums"]["daily_status"] | null
           steps: number | null
+          streak_count: number | null
           user_id: string
         }
         Insert: {
@@ -52,7 +56,9 @@ export type Database = {
           protein_g?: number | null
           readiness_score?: number | null
           sleep_hours?: number | null
+          status?: Database["public"]["Enums"]["daily_status"] | null
           steps?: number | null
+          streak_count?: number | null
           user_id: string
         }
         Update: {
@@ -63,7 +69,9 @@ export type Database = {
           protein_g?: number | null
           readiness_score?: number | null
           sleep_hours?: number | null
+          status?: Database["public"]["Enums"]["daily_status"] | null
           steps?: number | null
+          streak_count?: number | null
           user_id?: string
         }
         Relationships: [
@@ -94,6 +102,30 @@ export type Database = {
           instructions?: string | null
           muscle_group?: string
           name?: string
+        }
+        Relationships: []
+      }
+      knowledge_nudges: {
+        Row: {
+          category: Database["public"]["Enums"]["nudge_category"]
+          content: string
+          id: string
+          source_citation: string | null
+          title: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["nudge_category"]
+          content: string
+          id?: string
+          source_citation?: string | null
+          title: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["nudge_category"]
+          content?: string
+          id?: string
+          source_citation?: string | null
+          title?: string
         }
         Relationships: []
       }
@@ -168,6 +200,42 @@ export type Database = {
             columns: ["workout_log_id"]
             isOneToOne: false
             referencedRelation: "workout_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_nudge_history: {
+        Row: {
+          id: string
+          nudge_id: string | null
+          seen_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          nudge_id?: string | null
+          seen_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          nudge_id?: string | null
+          seen_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_nudge_history_nudge_id_fkey"
+            columns: ["nudge_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_nudges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_nudge_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -342,11 +410,27 @@ export type Database = {
     }
     Enums: {
       block_type: "Warmup" | "Main" | "Cooldown"
+      daily_status:
+        | "trained"
+        | "programmed_rest"
+        | "smart_rest"
+        | "missed"
+        | "pending"
+      nudge_category:
+        | "Hypertrophy"
+        | "Strength"
+        | "Weight Loss"
+        | "Sleep"
+        | "Recovery"
+        | "Nutrition"
+        | "Biomechanics"
       program_level: "Beginner" | "Intermediate" | "Advanced"
       program_specialty: "Hypertrophy" | "Strength" | "Weight Loss"
       user_sex: "Male" | "Female" | "Other" | "Prefer Not to Say"
     }
-    CompositeTypes: Record<string, never>
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
@@ -474,6 +558,22 @@ export const Constants = {
   public: {
     Enums: {
       block_type: ["Warmup", "Main", "Cooldown"],
+      daily_status: [
+        "trained",
+        "programmed_rest",
+        "smart_rest",
+        "missed",
+        "pending",
+      ],
+      nudge_category: [
+        "Hypertrophy",
+        "Strength",
+        "Weight Loss",
+        "Sleep",
+        "Recovery",
+        "Nutrition",
+        "Biomechanics",
+      ],
       program_level: ["Beginner", "Intermediate", "Advanced"],
       program_specialty: ["Hypertrophy", "Strength", "Weight Loss"],
       user_sex: ["Male", "Female", "Other", "Prefer Not to Say"],

@@ -3,6 +3,8 @@ CREATE TYPE user_sex AS ENUM ('Male', 'Female', 'Other', 'Prefer Not to Say');
 CREATE TYPE program_level AS ENUM ('Beginner', 'Intermediate', 'Advanced');
 CREATE TYPE program_specialty AS ENUM ('Hypertrophy', 'Strength', 'Weight Loss');
 CREATE TYPE block_type AS ENUM ('Warmup', 'Main', 'Cooldown');
+CREATE TYPE daily_status AS ENUM ('trained', 'programmed_rest', 'smart_rest', 'missed', 'pending');
+CREATE TYPE nudge_category AS ENUM ('Hypertrophy', 'Strength', 'Weight Loss', 'Sleep', 'Recovery', 'Nutrition', 'Biomechanics');
 
 -- 2. USERS (Links to Supabase Auth)
 CREATE TABLE users (
@@ -50,7 +52,9 @@ CREATE TABLE daily_biometrics (
     calories INTEGER,
     protein_g INTEGER,
     body_weight NUMERIC CHECK (body_weight IS NULL OR body_weight > 0),
-    readiness_score INTEGER CHECK (readiness_score >= 1 AND readiness_score <= 100),
+    readiness_score INTEGER CHECK (readiness_score >= 1 AND readiness_score <= 10),
+    status daily_status DEFAULT 'pending',
+    streak_count integer DEFAULT 0,
     UNIQUE(user_id, log_date)
 );
 
@@ -118,14 +122,32 @@ CREATE TABLE set_logs (
     rpe INTEGER CHECK (rpe >= 1 AND rpe <= 10)
 );
 
--- 6. INDEXES (user-owned lookups)
+-- 6. KNOWLEDGE NUDGES
+CREATE TABLE knowledge_nudges (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    category nudge_category NOT NULL,
+    title text NOT NULL,
+    content text NOT NULL,
+    source_citation text -- Optional: to add authority (e.g., "Brad Schoenfeld, 2021")
+);
+
+CREATE TABLE user_nudge_history (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+    nudge_id uuid REFERENCES knowledge_nudges(id) ON DELETE CASCADE,
+    seen_at timestamp with time zone DEFAULT now(),
+    UNIQUE(user_id, nudge_id) -- Prevents duplicate logs
+);
+
+-- 7. INDEXES (user-owned lookups)
 CREATE INDEX idx_daily_biometrics_user_id ON public.daily_biometrics (user_id);
 CREATE INDEX idx_workout_logs_user_id ON public.workout_logs (user_id);
 CREATE INDEX idx_set_logs_workout_log_id ON public.set_logs (workout_log_id);
 CREATE INDEX idx_workouts_program_id ON public.workouts (program_id);
 CREATE INDEX idx_workout_exercises_workout_id ON public.workout_exercises (workout_id);
+CREATE INDEX idx_user_nudge_history_user_id ON public.user_nudge_history (user_id);
 
--- 7. ROW LEVEL SECURITY
+-- 8. ROW LEVEL SECURITY
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.daily_biometrics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.programs ENABLE ROW LEVEL SECURITY;
@@ -134,6 +156,8 @@ ALTER TABLE public.exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workout_exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workout_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.set_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.knowledge_nudges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_nudge_history ENABLE ROW LEVEL SECURITY;
 
 -- users: one row per auth user
 CREATE POLICY "users_select_own"
@@ -211,6 +235,38 @@ CREATE POLICY "workout_exercises_select_authenticated"
   FOR SELECT
   TO authenticated
   USING (true);
+
+CREATE POLICY "knowledge_nudges_select_authenticated"
+  ON public.knowledge_nudges
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- user_nudge_history: user-owned nudge impressions
+CREATE POLICY "user_nudge_history_select_own"
+  ON public.user_nudge_history
+  FOR SELECT
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "user_nudge_history_insert_own"
+  ON public.user_nudge_history
+  FOR INSERT
+  TO authenticated
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "user_nudge_history_update_own"
+  ON public.user_nudge_history
+  FOR UPDATE
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
+
+CREATE POLICY "user_nudge_history_delete_own"
+  ON public.user_nudge_history
+  FOR DELETE
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id);
 
 -- workout_logs: user-owned sessions
 CREATE POLICY "workout_logs_select_own"
@@ -338,6 +394,8 @@ GRANT SELECT ON TABLE public.exercises TO authenticated;
 GRANT SELECT ON TABLE public.workout_exercises TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.workout_logs TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.set_logs TO authenticated;
+GRANT SELECT ON TABLE public.knowledge_nudges TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.user_nudge_history TO authenticated;
 
 -- 9. ANON DEFAULT-DENY
 REVOKE ALL ON TABLE public.users FROM anon;
@@ -348,3 +406,5 @@ REVOKE ALL ON TABLE public.exercises FROM anon;
 REVOKE ALL ON TABLE public.workout_exercises FROM anon;
 REVOKE ALL ON TABLE public.workout_logs FROM anon;
 REVOKE ALL ON TABLE public.set_logs FROM anon;
+REVOKE ALL ON TABLE public.knowledge_nudges FROM anon;
+REVOKE ALL ON TABLE public.user_nudge_history FROM anon;
