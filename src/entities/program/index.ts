@@ -1,33 +1,20 @@
 export type {
   Program,
-  ProgramDay,
-  ProgramBlock,
-  ProgramExercise,
-  ProgramExerciseSet,
-  ProgramExerciseWithSets,
-  ProgramBlockWithExercises,
-  ProgramDayWithBlocks,
-  ProgramDayWithExercises,
-  ProgramWithDays,
-  Enrollment,
+  Workout,
+  Exercise,
+  WorkoutExercise,
+  BlockType,
+  WorkoutExerciseWithDetails,
+  WorkoutWithExercises,
+  ProgramWithWorkouts,
 } from './model/types';
 export { isLoggableBlock } from './model/block-utils';
-export type { ProgramBlockType } from './model/block-utils';
 export {
   getPublishedPrograms,
-  getProgramWithDays,
+  getProgramWithWorkouts,
   programQueryKeys,
 } from './api/program-queries';
 export {
-  getActiveEnrollment,
-  enrollInProgram,
-  enrollmentQueryKeys,
-} from './api/enrollment-queries';
-export {
   usePublishedProgramsQuery,
-  useProgramWithDaysQuery,
+  useProgramWithWorkoutsQuery,
 } from './api/use-program-queries';
-export {
-  useActiveEnrollmentQuery,
-  useEnrollInProgramMutation,
-} from './api/use-enrollment';

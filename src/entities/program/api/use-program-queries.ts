@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSupabase } from '@/shared/api';
 
 import {
-  getProgramWithDays,
+  getProgramWithWorkouts,
   getPublishedPrograms,
   programQueryKeys,
 } from './program-queries';
@@ -20,16 +20,16 @@ export function usePublishedProgramsQuery() {
   });
 }
 
-export function useProgramWithDaysQuery(programId?: string) {
+export function useProgramWithWorkoutsQuery(programId?: string) {
   const supabase = useSupabase();
 
   return useQuery({
-    queryKey: programQueryKeys.withDays(programId ?? ''),
+    queryKey: programQueryKeys.withWorkouts(programId ?? ''),
     queryFn: async () => {
       if (!programId) {
         return null;
       }
-      return getProgramWithDays(supabase, programId);
+      return getProgramWithWorkouts(supabase, programId);
     },
     enabled: Boolean(programId),
     staleTime: CATALOG_STALE_MS,

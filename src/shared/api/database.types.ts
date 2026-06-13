@@ -28,14 +28,13 @@ export type Database = {
     Enums: {
       [_ in never]: never
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    CompositeTypes: Record<string, never>
   }
   public: {
     Tables: {
       daily_biometrics: {
         Row: {
+          body_weight: number | null
           calories: number | null
           id: string
           log_date: string
@@ -46,6 +45,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          body_weight?: number | null
           calories?: number | null
           id?: string
           log_date: string
@@ -56,6 +56,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          body_weight?: number | null
           calories?: number | null
           id?: string
           log_date?: string
@@ -345,9 +346,7 @@ export type Database = {
       program_specialty: "Hypertrophy" | "Strength" | "Weight Loss"
       user_sex: "Male" | "Female" | "Other" | "Prefer Not to Say"
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    CompositeTypes: Record<string, never>
   }
 }
 
