@@ -1,1 +1,0 @@
-# Cursor Agent Best Practices
