@@ -3,43 +3,30 @@ import type { Database } from '@/shared/api';
 /** Matches `public.programs` Row shape. */
 export type Program = Database['public']['Tables']['programs']['Row'];
 
-/** Matches `public.program_days` Row shape. */
-export type ProgramDay = Database['public']['Tables']['program_days']['Row'];
+/** Matches `public.workouts` Row shape. */
+export type Workout = Database['public']['Tables']['workouts']['Row'];
 
-/** Matches `public.program_blocks` Row shape. */
-export type ProgramBlock = Database['public']['Tables']['program_blocks']['Row'];
+/** Matches `public.exercises` Row shape. */
+export type Exercise = Database['public']['Tables']['exercises']['Row'];
 
-/** Matches `public.program_exercises` Row shape. */
-export type ProgramExercise =
-  Database['public']['Tables']['program_exercises']['Row'];
+/** Matches `public.workout_exercises` Row shape. */
+export type WorkoutExercise =
+  Database['public']['Tables']['workout_exercises']['Row'];
 
-/** Matches `public.program_exercise_sets` Row shape. */
-export type ProgramExerciseSet =
-  Database['public']['Tables']['program_exercise_sets']['Row'];
+/** Matches `public.block_type` enum on `workout_exercises`. */
+export type BlockType = Database['public']['Enums']['block_type'];
 
-/** Matches `public.user_program_enrollments` Row shape. */
-export type Enrollment =
-  Database['public']['Tables']['user_program_enrollments']['Row'];
-
-/** Exercise with optional per-set prescription rows, ordered by `set_number`. */
-export type ProgramExerciseWithSets = ProgramExercise & {
-  sets: ProgramExerciseSet[];
+/** Prescription row with joined exercise library details. */
+export type WorkoutExerciseWithDetails = WorkoutExercise & {
+  exercise: Exercise;
 };
 
-/** Block with nested exercises and sets, ordered by `sort_order`. */
-export type ProgramBlockWithExercises = ProgramBlock & {
-  exercises: ProgramExerciseWithSets[];
+/** A workout template with ordered prescriptions. */
+export type WorkoutWithExercises = Workout & {
+  exercises: WorkoutExerciseWithDetails[];
 };
 
-/** A program day with ordered blocks (warmup → main → cooldown). */
-export type ProgramDayWithBlocks = ProgramDay & {
-  blocks: ProgramBlockWithExercises[];
-};
-
-/** @deprecated Use `ProgramDayWithBlocks`; kept for transitional imports. */
-export type ProgramDayWithExercises = ProgramDayWithBlocks;
-
-/** A program with its days (each carrying blocks), ordered by `sort_order`. */
-export type ProgramWithDays = Program & {
-  days: ProgramDayWithBlocks[];
+/** A program with its workout templates, ordered by week then day. */
+export type ProgramWithWorkouts = Program & {
+  workouts: WorkoutWithExercises[];
 };

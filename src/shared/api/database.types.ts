@@ -28,9 +28,7 @@ export type Database = {
     Enums: {
       [_ in never]: never
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    CompositeTypes: Record<string, never>
   }
   public: {
     Tables: {
@@ -345,9 +343,7 @@ export type Database = {
       program_specialty: "Hypertrophy" | "Strength" | "Weight Loss"
       user_sex: "Male" | "Female" | "Other" | "Prefer Not to Say"
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    CompositeTypes: Record<string, never>
   }
 }
 
