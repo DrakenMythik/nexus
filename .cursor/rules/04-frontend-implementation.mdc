@@ -10,7 +10,7 @@ Nexus is a **mobile-first PWA** for lifting, sleep, nutrition, and habits. Offli
 ## Stack boundaries
 
 - **SPA:** React 19 + TypeScript + **Vite** + **react-router-dom**. Do not assume Next.js, SSR, or RSC patterns unless the repo gains a Next app.
-- **Styling:** Tailwind utility classes on **`className`**. Keep [`src/styles/global.css`](src/styles/global.css) limited to Tailwind layers and design tokens; avoid new scattered CSS files unless the codebase already uses a shared pattern in `src/shared/` or app-level styles.
+- **Styling:** Tailwind utility classes on **`className`**, composed from **shadcn/ui primitives** in [`src/shared/ui/`](src/shared/ui/) and **semantic design tokens** in [`src/styles/global.css`](src/styles/global.css). Keep `global.css` limited to Tailwind layers and tokens; avoid new scattered CSS files unless the codebase already uses a shared pattern in `src/shared/` or app-level styles.
 - **State:** TanStack React Query for server state; Zustand for offline-oriented and cache-oriented client state—follow slice boundaries in `.cursor/rules/01-tech-stack.mdc`.
 - **Architecture:** Respect Feature-Sliced Design imports and public APIs (`.cursor/rules/02-fsd.mdc`). UI code belongs in `src/pages/`, `src/features/`, `src/entities/`, or `src/shared/`—and in additional FSD layers such as widgets when those slices exist—never violate upward imports.
 
@@ -22,11 +22,54 @@ Nexus is a **mobile-first PWA** for lifting, sleep, nutrition, and habits. Offli
 - Prefer **early returns** for guard clauses (loading, missing data, feature flags) so the happy-path JSX stays shallow.
 - Match **existing formatting** in `src/` (quotes, semicolons, import style) and pass **`npm run lint`**.
 
+## Design system
+
+### Stack
+
+- **Tokens:** [`src/styles/global.css`](src/styles/global.css) — `:root` / `.dark` CSS variables mapped via `@theme inline` into Tailwind color utilities.
+- **Primitives:** shadcn/ui **New York** style in [`src/shared/ui/`](src/shared/ui/), configured via [`components.json`](components.json).
+- **Class merging:** always use **`cn()`** from [`src/shared/lib/utils.ts`](src/shared/lib/utils.ts) (`clsx` + `tailwind-merge`).
+- **Icons:** `lucide-react`.
+
+### Semantic colors
+
+- **Do** use token utilities: `bg-background`, `text-foreground`, `text-muted-foreground`, `bg-card`, `text-primary`, `text-destructive`, `border-input`, `bg-primary`, etc.
+- **Don't** use raw palette utilities (`text-slate-*`, `bg-zinc-*`, `text-gray-*`, `text-amber-*`, …) in `src/**/*.tsx` — they break dark mode and bypass the token system.
+
+### Primitives first
+
+- Import interactive and layout primitives from **`@/shared/ui`** (`Button`, `Card`, `Input`, `Form`, `Alert`, `Dialog`, …).
+- Use component **variants** (`Button` `variant`/`size`, `Alert` `variant="destructive"`) instead of hand-rolled button or alert styles.
+- Add new primitives via `npx shadcn@latest add <name>` (respects `components.json` aliases); export from [`src/shared/ui/index.ts`](src/shared/ui/index.ts).
+
+### Layout
+
+- App shell ([`src/app/App.tsx`](src/app/App.tsx)) owns viewport layout: `min-h-dvh`, `max-w-md mx-auto px-4`.
+- Pages should not redefine full-viewport width; compose content inside the shell.
+
+### Page composition (auth and form screens)
+
+- Wrap content in **`Card`** + **`CardHeader`** + **`CardContent`**.
+- Page title: `text-2xl font-semibold tracking-tight`.
+- Secondary copy: `text-sm text-muted-foreground`.
+- Links: `font-medium text-primary underline-offset-4 hover:underline`.
+- Section spacing: `space-y-6` / `space-y-3`.
+
+### Loading and error states
+
+- **Loading:** centered `min-h-[40vh]` block; optional `Loader2` with `text-muted-foreground`; `role="status"` + `aria-live="polite"` when announcing progress (see [`AuthCallbackPage`](src/pages/auth-callback-page/AuthCallbackPage.tsx)).
+- **Errors:** prefer **`Alert variant="destructive"`** with `AlertDescription`; inline fallback `text-destructive` / `text-muted-foreground` only for minimal inline copy.
+
+### Dark mode
+
+- Theme is class-based (`.dark` on `<html>`) via [`src/shared/lib/theme.ts`](src/shared/lib/theme.ts).
+- Rely on semantic tokens; add `dark:` overrides only when extending primitives, matching patterns in `src/shared/ui/*`.
+
 ## Styling conventions
 
 - Prefer **Tailwind** utilities for layout, spacing, typography, and states (`focus:`, `disabled:`, `dark:` when used consistently).
-- For **conditional `className`**, prefer small booleans, arrays filtered then joined, or a tiny helper—avoid long nested ternaries. Add **`clsx`** / **`tailwind-merge`** only if the project already depends on them or you introduce them as an intentional dependency with consistent usage.
-- Accept **`className?: string`** on reusable UI and merge with primitives via `${base} ${className ?? ''}` or an equivalent safe pattern.
+- For **conditional `className`**, use **`cn()`** from `@/shared/lib`—avoid long nested ternaries.
+- Accept **`className?: string`** on reusable UI and merge with primitives via `cn(base, className)`.
 
 ## Events and naming
 
