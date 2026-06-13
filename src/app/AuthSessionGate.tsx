@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { useUserStore } from '@/entities/user';
@@ -9,9 +10,17 @@ export function AuthSessionGate() {
 
   if (!authHydrated) {
     return (
-      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 text-center">
-        <p className="text-sm font-medium text-slate-200">Loading…</p>
-        <p className="text-xs text-slate-500">Checking your session.</p>
+      <div
+        className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center"
+        role="status"
+        aria-live="polite"
+      >
+        <Loader2
+          aria-hidden
+          className="size-6 animate-spin text-muted-foreground"
+        />
+        <p className="text-sm font-medium text-foreground">Loading…</p>
+        <p className="text-xs text-muted-foreground">Checking your session.</p>
       </div>
     );
   }

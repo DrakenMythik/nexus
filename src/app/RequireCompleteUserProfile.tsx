@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import { Navigate, Outlet } from 'react-router-dom';
 
 import {
@@ -5,12 +6,21 @@ import {
   useAppUserQuery,
   useUserStore,
 } from '@/entities/user';
+import { Alert, AlertDescription } from '@/shared/ui';
 
 function UserGateLoading() {
   return (
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 text-center">
-      <p className="text-sm font-medium text-slate-200">Loading…</p>
-      <p className="text-xs text-slate-500">Loading your account.</p>
+    <div
+      className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center"
+      role="status"
+      aria-live="polite"
+    >
+      <Loader2
+        aria-hidden
+        className="size-6 animate-spin text-muted-foreground"
+      />
+      <p className="text-sm font-medium text-foreground">Loading…</p>
+      <p className="text-xs text-muted-foreground">Loading your account.</p>
     </div>
   );
 }
@@ -34,9 +44,12 @@ export function RequireCompleteUserProfile() {
 
   if (isError) {
     return (
-      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 text-center">
-        <p className="text-sm font-medium text-amber-200">Could not load account</p>
-        <p className="text-xs text-slate-500">{error?.message ?? 'Unknown error'}</p>
+      <div className="flex min-h-[40vh] flex-col items-center justify-center px-4 text-center">
+        <Alert variant="destructive">
+          <AlertDescription>
+            {error?.message ?? 'Unknown error'}
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
