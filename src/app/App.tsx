@@ -3,10 +3,12 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import {
   AuthCallbackPage,
   CompleteProfilePage,
+  DailyRitualPage,
   DashboardPage,
   LoginPage,
   PendingVerificationPage,
   RegisterPage,
+  WorkoutGuidedPage,
 } from '@/pages';
 import { ThemeToggle } from '@/shared/ui';
 
@@ -35,7 +37,9 @@ export function App() {
                 element={<CompleteProfilePage />}
               />
               <Route element={<RequireCompleteUserProfile />}>
+                <Route path="/daily" element={<DailyRitualPage />} />
                 <Route path="/" element={<DashboardPage />} />
+                <Route path="/workout" element={<WorkoutGuidedPage />} />
               </Route>
             </Route>
           </Routes>

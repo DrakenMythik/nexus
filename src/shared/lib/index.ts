@@ -17,3 +17,14 @@ export {
   type UseWeightUnitResult,
   type WeightUnit,
 } from './weight';
+export { addLocalDays, formatLocalDate, isIsoDate } from './date';
+export {
+  clearOfflineMutations,
+  enqueueOfflineMutation,
+  listOfflineMutations,
+  markOfflineMutationStatus,
+  removeOfflineMutation,
+  type OfflineMutation,
+  type OfflineMutationDraft,
+  type OfflineMutationStatus,
+} from './offline-queue';
