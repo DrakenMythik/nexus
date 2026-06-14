@@ -34,6 +34,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      adherence_events: {
+        Row: {
+          created_at: string
+          event_date: string
+          id: string
+          notes: string | null
+          smart_rest_commitment: string | null
+          source: string
+          status: Database["public"]["Enums"]["daily_status"]
+          updated_at: string
+          user_id: string
+          workout_log_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          id?: string
+          notes?: string | null
+          smart_rest_commitment?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["daily_status"]
+          updated_at?: string
+          user_id: string
+          workout_log_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          id?: string
+          notes?: string | null
+          smart_rest_commitment?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["daily_status"]
+          updated_at?: string
+          user_id?: string
+          workout_log_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adherence_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "adherence_events_workout_log_id_fkey"
+            columns: ["workout_log_id"]
+            isOneToOne: false
+            referencedRelation: "workout_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_biometrics: {
         Row: {
           body_weight: number | null
@@ -105,6 +159,54 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_progressions: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          increment_weight: number
+          last_completed_at: string | null
+          target_weight: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          increment_weight?: number
+          last_completed_at?: string | null
+          target_weight: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          increment_weight?: number
+          last_completed_at?: string | null
+          target_weight?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_progressions_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_progressions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_nudges: {
         Row: {
           category: Database["public"]["Enums"]["nudge_category"]
@@ -128,6 +230,50 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      offline_mutations: {
+        Row: {
+          client_mutation_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          mutation_type: string
+          payload: Json
+          status: string
+          synced_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_mutation_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          mutation_type: string
+          payload?: Json
+          status?: string
+          synced_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_mutation_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          mutation_type?: string
+          payload?: Json
+          status?: string
+          synced_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offline_mutations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       programs: {
         Row: {
@@ -161,6 +307,7 @@ export type Database = {
       }
       set_logs: {
         Row: {
+          client_mutation_id: string | null
           exercise_id: string
           id: string
           reps_completed: number
@@ -170,6 +317,7 @@ export type Database = {
           workout_log_id: string
         }
         Insert: {
+          client_mutation_id?: string | null
           exercise_id: string
           id?: string
           reps_completed: number
@@ -179,6 +327,7 @@ export type Database = {
           workout_log_id: string
         }
         Update: {
+          client_mutation_id?: string | null
           exercise_id?: string
           id?: string
           reps_completed?: number
@@ -233,6 +382,60 @@ export type Database = {
           },
           {
             foreignKeyName: "user_nudge_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_program_enrollments: {
+        Row: {
+          active: boolean
+          created_at: string
+          current_day_number: number
+          current_week_number: number
+          id: string
+          program_id: string
+          pushed_until: string | null
+          started_on: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          current_day_number?: number
+          current_week_number?: number
+          id?: string
+          program_id: string
+          pushed_until?: string | null
+          started_on?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          current_day_number?: number
+          current_week_number?: number
+          id?: string
+          program_id?: string
+          pushed_until?: string | null
+          started_on?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_program_enrollments_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_program_enrollments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -329,23 +532,32 @@ export type Database = {
       }
       workout_logs: {
         Row: {
+          client_mutation_id: string | null
+          completed_at: string | null
           ended_at: string | null
           id: string
           started_at: string
+          status: string
           user_id: string
           workout_id: string | null
         }
         Insert: {
+          client_mutation_id?: string | null
+          completed_at?: string | null
           ended_at?: string | null
           id?: string
           started_at?: string
+          status?: string
           user_id: string
           workout_id?: string | null
         }
         Update: {
+          client_mutation_id?: string | null
+          completed_at?: string | null
           ended_at?: string | null
           id?: string
           started_at?: string
+          status?: string
           user_id?: string
           workout_id?: string | null
         }

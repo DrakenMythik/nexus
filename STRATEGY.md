@@ -62,7 +62,7 @@ To drive the *Daily-open rate* on non-lifting days, the Whole-system signals and
 - AI-generated custom programming.
 - Social profiles, communities, and activity feeds.
 - "Smart Gym" equipment-profile auto-adjustment.
-- Near-term: automatic health telemetry, LLM coaching/notes, progression automation, and smart exercise substitution are *deferred* (in the vision, phased later) — not iceboxed, but not now.
+- Near-term: automatic health telemetry, LLM coaching/notes, advanced progression depth, and smart exercise substitution are *deferred* (in the vision, phased later) — not iceboxed. Minimum linear progression is included in the Phase 1 + Phase 2 MVP to keep today's session alive during the 4-week adherence test.
 
 ## Marketing
 
