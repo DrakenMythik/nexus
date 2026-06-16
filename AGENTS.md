@@ -58,6 +58,7 @@ Detailed pre-flight and post-ship checklists: [`.cursor/rules/05-lfg-guardrails.
 | [`docs/brainstorms/`](docs/brainstorms/) | Requirements from `ce-brainstorm` |
 | [`docs/plans/`](docs/plans/) | Implementation plans from `ce-plan` (audit trail LFG creates) |
 | [`docs/solutions/`](docs/solutions/) | Post-mortem learnings from `ce-compound` |
+| [`CONCEPTS.md`](CONCEPTS.md) | Shared domain vocabulary (entities, named processes, status concepts) |
 
 Local compound config (optional): [`.compound-engineering/config.local.example.yaml`](.compound-engineering/config.local.example.yaml) → gitignored `config.local.yaml`.
 
