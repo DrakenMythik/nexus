@@ -1,9 +1,11 @@
 export {
   createDefaultEnrollment,
+  enrollOrSwitchProgram,
   finishWorkoutLog,
   getActiveEnrollment,
   getActiveWorkoutLog,
   getSetLogs,
+  ProgramSwitchBlockedError,
   startWorkoutLog,
   updateEnrollmentPosition,
   upsertSetLog,
@@ -13,6 +15,7 @@ export {
   useActiveEnrollmentQuery,
   useActiveWorkoutLogQuery,
   useCreateDefaultEnrollmentMutation,
+  useEnrollOrSwitchProgramMutation,
   useFinishWorkoutLogMutation,
   useSetLogsQuery,
   useStartWorkoutLogMutation,
@@ -20,6 +23,7 @@ export {
   useUpsertSetLogMutation,
 } from './api/use-workout-session';
 export {
+  canSwitchProgram,
   hasCompletedPrescribedSets,
   nextEnrollmentPosition,
   nextWorkoutPushDate,

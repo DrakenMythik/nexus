@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Activity, Dumbbell, Moon, TrendingUp } from 'lucide-react';
+import { Activity, BookOpen, Dumbbell, Moon, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -21,10 +21,8 @@ import {
 import {
   nextWorkoutPushDate,
   resolveTodayWorkoutState,
-  selectDefaultProgram,
   useActiveEnrollmentQuery,
   useActiveWorkoutLogQuery,
-  useCreateDefaultEnrollmentMutation,
   useStartWorkoutLogMutation,
   useUpdateEnrollmentPositionMutation,
 } from '@/entities/workout-session';
@@ -51,15 +49,15 @@ export function DashboardPage() {
   const programsQuery = usePublishedProgramsQuery();
   const enrollmentQuery = useActiveEnrollmentQuery(userId);
   const activeLogQuery = useActiveWorkoutLogQuery(userId);
-  const createEnrollment = useCreateDefaultEnrollmentMutation(userId);
   const startWorkout = useStartWorkoutLogMutation(userId);
   const updateEnrollment = useUpdateEnrollmentPositionMutation();
   const upsertAdherence = useUpsertAdherenceEventMutation(userId);
 
   const readyForName = authHydrated && Boolean(userId) && !isPending;
   const name = appUserGreetingName(data);
-  const defaultProgram = selectDefaultProgram(programsQuery.data ?? []);
-  const programId = enrollmentQuery.data?.program_id ?? defaultProgram?.id;
+  const enrollment = enrollmentQuery.data ?? null;
+  const programId = enrollment?.program_id;
+  const enrolledProgram = programsQuery.data?.find((program) => program.id === programId);
   const programQuery = useProgramWithWorkoutsQuery(programId);
   const adherenceSummary = summarizeAdherence(adherenceQuery.data ?? []);
   const trends = summarizeBiometricTrends(recentDailyQuery.data ?? []);
@@ -76,7 +74,8 @@ export function DashboardPage() {
     dailyQuery.isPending ||
     programsQuery.isPending ||
     enrollmentQuery.isPending ||
-    activeLogQuery.isPending;
+    activeLogQuery.isPending ||
+    (Boolean(programId) && programQuery.isPending);
 
   const topTrends = useMemo(
     () => trends.filter((trend) => trend.latest != null).slice(0, 3),
@@ -88,20 +87,16 @@ export function DashboardPage() {
   }
 
   async function handleStartWorkout() {
-    if (!userId || !defaultProgram || !nextWorkout) {
+    if (!userId || !enrollment || !nextWorkout) {
       return;
     }
 
     try {
-      let enrollment = enrollmentQuery.data;
-      if (!enrollment) {
-        enrollment = await createEnrollment.mutateAsync(defaultProgram.id);
-      }
       await startWorkout.mutateAsync({
         workoutId: nextWorkout.id,
         clientMutationId: `workout-${userId}-${nextWorkout.id}-${Date.now()}`,
       });
-      navigate('/workout');
+      void navigate('/workout');
     } catch {
       toast.error('Could not start workout. Try again when your connection is stable.');
     }
@@ -204,6 +199,44 @@ export function DashboardPage() {
       </Card>
 
       <Card>
+        <CardHeader className="space-y-1">
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="size-5 text-primary" />
+            Your program
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {enrollment ? (
+            <>
+              <div>
+                <p className="text-lg font-semibold">
+                  {enrolledProgram?.name ?? 'Active program'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {enrolledProgram?.level ? `${enrolledProgram.level} · ` : ''}
+                  Week {enrollment.current_week_number}, day {enrollment.current_day_number}
+                </p>
+              </div>
+              <Button
+                className="w-full"
+                onClick={() => void navigate('/programs')}
+                variant="outline"
+              >
+                Change program
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">No program selected yet.</p>
+              <Button className="w-full" onClick={() => void navigate('/programs')}>
+                Browse programs
+              </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Dumbbell className="size-5 text-primary" />
@@ -224,22 +257,13 @@ export function DashboardPage() {
               </Button>
             </>
           ) : (
-            <>
-              <p className="text-sm text-muted-foreground">
-                {todayState.reason === 'pushed'
-                  ? 'Workout pushed for Smart Rest. Tomorrow is ready.'
-                  : 'Choose the default seeded program to start the MVP loop.'}
-              </p>
-              {defaultProgram ? (
-                <Button
-                  className="w-full"
-                  disabled={createEnrollment.isPending}
-                  onClick={() => void createEnrollment.mutateAsync(defaultProgram.id)}
-                >
-                  Begin {defaultProgram.name}
-                </Button>
-              ) : null}
-            </>
+            <p className="text-sm text-muted-foreground">
+              {todayState.reason === 'pushed'
+                ? 'Workout pushed for Smart Rest. Tomorrow is ready.'
+                : enrollment
+                  ? 'No workout is queued for today. Check your program position or choose a different plan.'
+                  : 'Browse the program library above to enroll and unlock your next session.'}
+            </p>
           )}
         </CardContent>
       </Card>

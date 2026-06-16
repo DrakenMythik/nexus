@@ -1,6 +1,14 @@
 import type { NexusSupabaseClient } from '@/shared/api';
 
+import { canSwitchProgram } from '../model/session';
 import type { CompletedSetInput, SetLog, UserProgramEnrollment, WorkoutLog } from '../model/types';
+
+export class ProgramSwitchBlockedError extends Error {
+  constructor() {
+    super('Cannot switch programs while a workout is in progress.');
+    this.name = 'ProgramSwitchBlockedError';
+  }
+}
 
 export const workoutSessionQueryKeys = {
   all: ['workout-session'] as const,
@@ -43,6 +51,38 @@ export async function createDefaultEnrollment(
   }
 
   return data;
+}
+
+export async function enrollOrSwitchProgram(
+  client: NexusSupabaseClient,
+  userId: string,
+  programId: string,
+): Promise<UserProgramEnrollment> {
+  const [currentEnrollment, activeLog] = await Promise.all([
+    getActiveEnrollment(client, userId),
+    getActiveWorkoutLog(client, userId),
+  ]);
+
+  if (currentEnrollment?.program_id === programId) {
+    return currentEnrollment;
+  }
+
+  if (!canSwitchProgram(activeLog)) {
+    throw new ProgramSwitchBlockedError();
+  }
+
+  if (currentEnrollment) {
+    const { error: deactivateError } = await client
+      .from('user_program_enrollments')
+      .update({ active: false, updated_at: new Date().toISOString() })
+      .eq('id', currentEnrollment.id);
+
+    if (deactivateError) {
+      throw deactivateError;
+    }
+  }
+
+  return createDefaultEnrollment(client, userId, programId);
 }
 
 export async function updateEnrollmentPosition(
