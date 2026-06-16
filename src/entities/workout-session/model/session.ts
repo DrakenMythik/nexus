@@ -3,6 +3,10 @@ import type { ProgramWithWorkouts, WorkoutWithExercises } from '@/entities/progr
 
 import type { CompletedSetInput, TodayWorkoutState, UserProgramEnrollment, WorkoutLog } from './types';
 
+export function canSwitchProgram(activeLog: WorkoutLog | null): boolean {
+  return activeLog === null;
+}
+
 export function selectDefaultProgram<T extends { name: string; level: string | null }>(
   programs: T[],
 ): T | null {

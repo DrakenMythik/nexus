@@ -5,4 +5,5 @@ export { DailyRitualPage } from './daily-ritual-page';
 export { LoginPage } from './login-page';
 export { PendingVerificationPage } from './pending-verification-page';
 export { RegisterPage } from './register-page';
+export { ProgramsPage } from './programs-page';
 export { WorkoutGuidedPage } from './workout-guided-page';

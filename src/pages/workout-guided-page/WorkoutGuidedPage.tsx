@@ -230,7 +230,7 @@ export function WorkoutGuidedPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Return to the dashboard to choose the default seeded program.
+            Return to the dashboard to browse the program library and enroll in a plan.
           </p>
           <Button className="w-full" onClick={() => navigate('/')}>
             Back to dashboard

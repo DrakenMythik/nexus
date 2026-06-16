@@ -4,6 +4,7 @@ import { useSupabase } from '@/shared/api';
 
 import {
   createDefaultEnrollment,
+  enrollOrSwitchProgram,
   finishWorkoutLog,
   getActiveEnrollment,
   getActiveWorkoutLog,
@@ -61,6 +62,27 @@ export function useCreateDefaultEnrollmentMutation(userId: string | null) {
         workoutSessionQueryKeys.enrollment(enrollment.user_id),
         enrollment,
       );
+    },
+  });
+}
+
+export function useEnrollOrSwitchProgramMutation(userId: string | null) {
+  const client = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (programId: string) => {
+      if (!userId) {
+        throw new Error('User is required to enroll in a program.');
+      }
+      return enrollOrSwitchProgram(client, userId, programId);
+    },
+    onSuccess: (enrollment) => {
+      queryClient.setQueryData(
+        workoutSessionQueryKeys.enrollment(enrollment.user_id),
+        enrollment,
+      );
+      void queryClient.invalidateQueries({ queryKey: ['program'] });
     },
   });
 }

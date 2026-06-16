@@ -7,6 +7,7 @@ import {
   DashboardPage,
   LoginPage,
   PendingVerificationPage,
+  ProgramsPage,
   RegisterPage,
   WorkoutGuidedPage,
 } from '@/pages';
@@ -39,6 +40,7 @@ export function App() {
               <Route element={<RequireCompleteUserProfile />}>
                 <Route path="/daily" element={<DailyRitualPage />} />
                 <Route path="/" element={<DashboardPage />} />
+                <Route path="/programs" element={<ProgramsPage />} />
                 <Route path="/workout" element={<WorkoutGuidedPage />} />
               </Route>
             </Route>

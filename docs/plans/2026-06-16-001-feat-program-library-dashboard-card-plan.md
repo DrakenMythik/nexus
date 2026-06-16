@@ -1,6 +1,6 @@
 ---
 title: "feat: Connect program library to dashboard"
-status: active
+status: completed
 type: feat
 date: 2026-06-16
 origin: user-request
